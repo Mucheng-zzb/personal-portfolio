@@ -1,0 +1,38 @@
+{
+  "name": "周同学",
+  "tagline": "大一在读，在学后端与 AI，想做出自己的第一个作品。",
+  "email": "254180649@qq.com",
+  "github": "https://github.com/Mucheng-zzb",
+
+  "heroChips": ["后端开发", "AI · 数据", "持续学习中"],
+
+  "about": [
+    "我是周同学，目前大一在读，正在探索后端开发和 AI 领域。 这个网站是我的第一个项目 —— 完全手写，没有使用任何框架， 从写下第一行 HTML 到最终部署上线，我独立走完了整个流程。",
+    "我对「数据从哪来、怎么存、如何获取」的底层逻辑充满好奇， 也热衷于将繁杂的数据整理成直观易懂的信息。 目前我正在稳扎稳打地打基础：Python 语法、SQL、HTTP 原理，一样一样来。 在这个网站上，我会持续记录我的学习历程与踩过的坑。"
+  ],
+
+  "learning": [
+    "Python 编程基础与常用库",
+    "SQL 与数据库设计入门",
+    "HTTP / REST API 是怎么工作的",
+    "机器学习基础概念（PyTorch 起步）"
+  ],
+
+  "skills": [
+    {
+      "title": "后端开发",
+      "items": ["Python", "C语言", "Node.js", "SQL", "Git"]
+    },
+    {
+      "title": "AI · 数据(学习中)",
+      "items": ["Pandas", "NumPy", "数据清洗", "Matplotlib", "scikit-learn"]
+    },
+    {
+      "title": "工具与基础",
+      "items": ["HTML / CSS", "Linux 命令行", "VS Code", "Markdown", "英语文档阅读"]
+    }
+  ],
+
+  "contactNote": "代码和练习都会放在这里",
+  "footerNote": "用 HTML / CSS / JavaScript 手写"
+}

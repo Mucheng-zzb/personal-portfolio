@@ -1,8 +1,15 @@
 // Vite 配置 —— https://vite.dev/config/
 // 这个文件只需要管两件事，但两件都是"漏了就线上白屏"的那种。
 import { defineConfig } from 'vite';
+import { contentPlugin } from './build/content-plugin.js';
 
 export default defineConfig({
+  plugins: [
+    // 内容管线：读 web/content/ → 校验 → 以 virtual:content 暴露给页面。
+    // 校验不通过时构建直接失败，详见 build/content-schema.js 开头的说明。
+    contentPlugin(),
+  ],
+
   // ① 线上地址是子路径，不是域名根目录：
   //    https://mucheng-zzb.github.io/personal-portfolio/
   //    所以页面里的资源必须写成 /personal-portfolio/assets/xxx.js。
