@@ -6,31 +6,27 @@
 
 ---
 
-## 过渡状态
+## 迁移状态
 
-> **版本 v0.2-A（2026-10-11 起）**：仓库正在从「根目录几个文件」迁成「monorepo + 构建」。
-> 迁移途中**新旧两套并存**，先看清这张表再动手。
+> **版本 v0.2-B（2026-10-11）**：从「根目录几个文件」迁成「monorepo + 构建」这件事**已经做完**。
+> 根目录不再有 `index.html` / `style.css` / `script.js`，线上由 GitHub Actions 构建 `web/dist` 后发布，URL 不变。
 
 | 位置 | 是什么 | 现状 |
 | :--- | :--- | :--- |
-| `web/` | **唯一开发入口**，以后所有改动都做在这里 | 已可用：`cd web && npm run dev` |
-| 根目录 `index.html` / `style.css` / `script.js` | **临时保活副本，请勿编辑** | 线上暂时仍由它提供；等 Pages 的 Source 切成 GitHub Actions，就由 `web/` 的构建产物接管 |
+| `web/` | **唯一开发入口**，所有前端改动都做在这里 | 日常用 `cd web && npm run dev` |
+| `.github/workflows/web-deploy.yml` | 部署流水线 | push `main` 自动构建并发布（见[部署到 GitHub Pages](#部署到-github-pages)）|
 | `api/` | 后端，v0.5 才动工 | 暂时只有一份说明（`api/README.md`）|
 
-**过渡期的三条规矩**
-
-1. 改内容、改样式、改逻辑，**只改 `web/` 里的同名文件**，不要碰根目录副本 —— 否则两边会不一致。
-2. 根目录那三个文件的顶部各加了一行 `⚠️ 临时保活副本` 注释，看到它就说明你走错地方了。
-3. **v0.2-B 完成后**会删掉根目录这三件套：改成 GitHub Actions 构建 `web/dist` 再发布到 Pages。线上 URL 不变。
-
-> **为什么现在不直接删掉？** 因为 Pages 目前是从分支根目录部署的，把文件搬走线上会**立刻 404**。
-> 所以先留副本保活，等自动部署打通再删，中间不留断线 —— 这是 v0.2-A 唯一接受的取舍。
+> **过渡期踩过的坑，留个记录**：v0.2-A 到 v0.2-B 之间，根目录和 `web/` 各存了一份同名文件，
+> 因为当时的 Pages 是「从分支根目录部署」，直接删文件线上会**立刻 404**。
+> 那段时间的铁律是**只改 `web/`**，根目录那三份是只读的保活副本。
+> 现在三件套已删，这条规矩自然作废 —— 但教训还在：**部署方式没切完之前，不要删正在提供服务的文件。**
 
 ---
 
 ## 目录
 
-- [过渡状态](#过渡状态)
+- [迁移状态](#迁移状态)
 - [文件结构](#文件结构)
 - [本地打开](#本地打开)
 - [改成你自己的内容](#改成你自己的内容)
@@ -44,7 +40,9 @@
 
 ```text
 personal-portfolio/
-├── web/                  前端（Vite 项目）
+├── .github/workflows/
+│   └── web-deploy.yml     部署流水线：push main 后构建 web/ 并发布到 Pages
+├── web/                  前端（Vite 项目）—— 唯一开发入口
 │   ├── index.html          页面结构
 │   ├── style.css           所有样式（颜色、字体、间距、响应式）
 │   ├── script.js           交互（滚动淡入、导航高亮、复制邮箱…）
@@ -54,13 +52,11 @@ personal-portfolio/
 │   └── dist/               构建产物（不入库，部署时现构建）
 ├── api/                  后端，占位，v0.5 才动（见 api/README.md）
 ├── docs/                 路线图（ROADMAP）与架构文档（ARCHITECTURE）
-├── index.html            ⚠️ 临时保活副本，请勿编辑
-├── style.css             ⚠️ 临时保活副本，请勿编辑
-├── script.js             ⚠️ 临时保活副本，请勿编辑
 └── README.md             就是这个文件
 ```
 
-根目录那三个只是过渡期的保活副本，**真正的工作目录是 `web/`**（原因见上面的[过渡状态](#过渡状态)）。
+**根目录已经不再有网页文件了** —— 页面结构、样式、交互全在 `web/` 下，
+根目录只放仓库级的东西（`README.md`、`.gitignore`、`api/`、`docs/`、`.github/`）。
 
 ---
 
@@ -154,9 +150,10 @@ npm run dev     # 启动开发服务器
 > `.github/workflows/web-deploy.yml` 会构建 `web/`，把 `web/dist` 发布到 Pages。
 > **线上 URL 不变**：<https://mucheng-zzb.github.io/personal-portfolio/>
 
-### 一次性人工步骤：把 Source 改成 GitHub Actions
+### 一次性人工步骤：把 Source 改成 GitHub Actions ✅ 已完成
 
-**这一步只能你自己在网页上点**（Claude Code 没有你的 GitHub 权限）：
+**2026-10-11 已经切好了**（仓库的 `build_type` = `workflow`，线上已由 `web/dist` 提供）。
+这一步只能人工在网页上点，Claude Code 没有你的 GitHub 权限 —— 留在这里备查，重建仓库时照做：
 
 1. 进仓库 → **Settings** → 左侧菜单 **Pages**
 2. **Source** 选 **GitHub Actions**（**不要**选 “Deploy from a branch”）
