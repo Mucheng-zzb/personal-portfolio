@@ -33,9 +33,6 @@ export function contentPlugin() {
   let server = null;
   let state = { data: null, errors: [] };
 
-  /** 上一次构建/刷新实际读到过的文件（用来判断哪些文件需要进监听） */
-  let watched = new Set();
-
   const contentDir = () => path.join(root, 'content');
 
   /** 绝对路径 → 相对仓库根的正斜杠路径，例如 web/content/profile.json */
@@ -75,11 +72,6 @@ export function contentPlugin() {
   function revalidate() {
     const files = collectFiles();
     const { data, errors } = validateContent(files);
-
-    // 记录本轮涉及的文件，方便 dev 模式下补进监听
-    watched = new Set(
-      [files.profile?.path, files.now?.path, ...files.projects.map((f) => f.path)].filter(Boolean),
-    );
 
     state = { data, errors };
     return state;

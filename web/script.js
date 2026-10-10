@@ -174,8 +174,8 @@ async function copyToClipboard(text) {
       await navigator.clipboard.writeText(text);
       return true;
     }
-  } catch (err) {
-    // 静默失败，继续走方案 B
+  } catch {
+    // 静默失败，继续走方案 B（不关心具体错误，用可选 catch 绑定）
   }
 
   // 方案 B：老办法兜底
@@ -192,7 +192,7 @@ async function copyToClipboard(text) {
     const ok = document.execCommand('copy');
     document.body.removeChild(textarea);
     return ok;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
