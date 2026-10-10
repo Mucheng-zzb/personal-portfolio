@@ -29,7 +29,9 @@
   <!-- ===== 顶部导航栏（滚动时吸顶） ===== -->
   <header class="header">
     <div class="container header__inner">
-      <a class="logo" href="#hero">周<span>同学</span></a>
+      <!-- 首字普通色、其余渐变色（见 style.css 的 .logo span）：
+           所以第一个字必须是 <a> 的直接文本节点，不能包进 span -->
+      <a class="logo" href="#hero" id="logoName">周<span id="logoNameRest">同学</span></a>
 
       <nav class="nav" aria-label="主导航">
         <a class="nav__link" href="#about">关于</a>
@@ -43,30 +45,40 @@
 
   <main>
 
+    <!--
+      ============ 两条规矩（v0.2-C 起） ============
+
+      ① 正文内容都来自 web/content/ 下的数据文件，由 JS 渲染进下面这些带 id 的容器。
+         要改内容请改数据文件，不要在这里加内容 —— 加了也是重复的，下次构建就分叉了。
+
+      ② 例外：姓名、一句话定位、邮箱、GitHub 四项写死在下面（禁用 JS 也必须看得见）。
+         脚本只会替换它们的文字（id 见 script.js 的 renderProfile），不会重建节点。
+    -->
+
     <!-- ============ 1. Hero 首屏 ============ -->
     <section class="hero" id="hero">
       <div class="container hero__inner reveal">
 
         <p class="hero__eyebrow">你好，我是</p>
 
-        <h1 class="hero__title">周同学</h1>
+        <!-- 静态：禁用 JS 也要可见 → profile.name -->
+        <h1 class="hero__title" id="heroName">周同学</h1>
 
-        <p class="hero__sub">
+        <!-- 静态：禁用 JS 也要可见 → profile.tagline -->
+        <p class="hero__sub" id="heroTagline">
           大一在读，在学后端与 AI，想做出自己的第一个作品。
         </p>
 
         <div class="hero__actions">
           <a class="btn btn--primary" href="#contact">联系我</a>
-          <a class="btn btn--ghost" href="https://github.com/Mucheng-zzb" target="_blank" rel="noopener noreferrer">
+          <!-- 静态：禁用 JS 也要可见 → profile.github -->
+          <a class="btn btn--ghost" href="https://github.com/Mucheng-zzb" id="heroGithub" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
         </div>
 
-        <ul class="hero__chips">
-          <li class="chip"><i class="dot"></i>后端开发</li>
-          <li class="chip"><i class="dot"></i>AI · 数据</li>
-          <li class="chip"><i class="dot"></i>持续学习中</li>
-        </ul>
+        <!-- → profile.heroChips[] -->
+        <ul class="hero__chips" id="heroChips"></ul>
 
       </div>
 
@@ -86,28 +98,13 @@
         <h2 class="section__title">关于我</h2>
 
         <div class="about">
-          <div class="about__text">
-            <p>
-              我是周同学，目前大一在读，正在探索后端开发和 AI 领域。
-              这个网站是我的第一个项目 —— 完全手写，没有使用任何框架，
-              从写下第一行 HTML 到最终部署上线，我独立走完了整个流程。
-            </p>
-            <p>
-              我对「数据从哪来、怎么存、如何获取」的底层逻辑充满好奇，
-              也热衷于将繁杂的数据整理成直观易懂的信息。
-              目前我正在稳扎稳打地打基础：Python 语法、SQL、HTTP 原理，一样一样来。
-              在这个网站上，我会持续记录我的学习历程与踩过的坑。
-            </p>
-          </div>
+          <!-- → profile.about[] -->
+          <div class="about__text" id="aboutText"></div>
 
           <aside class="about__card card">
             <h3 class="card__title">正在学什么</h3>
-            <ul class="check-list">
-              <li>Python 编程基础与常用库</li>
-              <li>SQL 与数据库设计入门</li>
-              <li>HTTP / REST API 是怎么工作的</li>
-              <li>机器学习基础概念（PyTorch 起步）</li>
-            </ul>
+            <!-- → profile.learning[]（和 now.json 的「最近在做什么」是两回事，别搞混） -->
+            <ul class="check-list" id="learningList"></ul>
           </aside>
         </div>
       </div>
@@ -122,40 +119,8 @@
           不盲目堆砌名词，以下是我真正理解并能够投入使用的工具与技术栈。
         </p>
 
-        <div class="skills">
-          <div class="card skill-card">
-            <h3 class="card__title">后端开发</h3>
-            <ul class="tags">
-              <li class="tag">Python</li>
-              <li class="tag">C语言</li>
-              <li class="tag">Node.js</li>
-              <li class="tag">SQL</li>
-              <li class="tag">Git</li>
-            </ul>
-          </div>
-
-          <div class="card skill-card">
-            <h3 class="card__title">AI · 数据(学习中)</h3>
-            <ul class="tags">
-              <li class="tag">Pandas</li>
-              <li class="tag">NumPy</li>
-              <li class="tag">数据清洗</li>
-              <li class="tag">Matplotlib</li>
-              <li class="tag">scikit-learn</li>
-            </ul>
-          </div>
-
-          <div class="card skill-card">
-            <h3 class="card__title">工具与基础</h3>
-            <ul class="tags">
-              <li class="tag">HTML / CSS</li>
-              <li class="tag">Linux 命令行</li>
-              <li class="tag">VS Code</li>
-              <li class="tag">Markdown</li>
-              <li class="tag">英语文档阅读</li>
-            </ul>
-          </div>
-        </div>
+        <!-- → profile.skills[]，一组一张卡 -->
+        <div class="skills" id="skillsGrid"></div>
       </div>
     </section>
 
@@ -166,83 +131,8 @@
         <h2 class="section__title">项目</h2>
         <p class="section__lead">目前作品还不多，先把已经做完的放上来，其他的慢慢填。</p>
 
-        <div class="projects">
-
-          <!-- ---- 已完成：个人主页 v1（featured 会占满一整行） ---- -->
-          <article class="card project project--featured">
-            <div class="project__head">
-              <h3 class="project__title">个人作品集 v0.1</h3>
-              <span class="badge badge--done">已完成</span>
-            </div>
-
-            <p class="project__desc">
-              就是你现在正在看的这个页面。用纯 HTML + CSS + JavaScript 手写，
-              没有框架、没有依赖，手机和电脑都能正常显示，已部署到 GitHub Pages。
-              做它的目的是把「结构 / 样式 / 交互」这三件事从头到尾走一遍。
-            </p>
-
-            <ul class="tags">
-              <li class="tag">HTML</li>
-              <li class="tag">CSS</li>
-              <li class="tag">JavaScript</li>
-              <li class="tag">响应式布局</li>
-              <li class="tag">GitHub Pages</li>
-            </ul>
-
-            <div class="project__links">
-              <a class="link" href="https://github.com/Mucheng-zzb/personal-portfolio" target="_blank" rel="noopener noreferrer">查看仓库 →</a>
-              <a class="link" href="https://mucheng-zzb.github.io/personal-portfolio/" target="_blank" rel="noopener noreferrer">在线版本 ↗</a>
-              <a class="link" href="#hero">回到顶部 ↑</a>
-            </div>
-          </article>
-
-          <!-- ---- 建设中占位卡片 ---- -->
-          <article class="card project project--wip">
-            <div class="project__head">
-              <h3 class="project__title">学习笔记仓库</h3>
-              <span class="badge">建设中</span>
-            </div>
-            <p class="project__desc">
-              打算把后端和数据库学习过程中的笔记、代码片段整理成一个仓库，方便自己回头查。
-            </p>
-            <ul class="tags">
-              <li class="tag">Markdown</li>
-              <li class="tag">Git</li>
-            </ul>
-            <p class="project__wip">施工中，敬请期待 🚧</p>
-          </article>
-
-          <article class="card project project--wip">
-            <div class="project__head">
-              <h3 class="project__title">数据小工具</h3>
-              <span class="badge">建设中</span>
-            </div>
-            <p class="project__desc">
-              一个用 Python 写的小脚本，把 CSV 里的数据快速清洗、统计并画成图。等学完 Pandas 就动手。
-            </p>
-            <ul class="tags">
-              <li class="tag">Python</li>
-              <li class="tag">Pandas</li>
-            </ul>
-            <p class="project__wip">施工中，敬请期待 🚧</p>
-          </article>
-
-          <article class="card project project--wip">
-            <div class="project__head">
-              <h3 class="project__title">第一个 API 服务</h3>
-              <span class="badge">建设中</span>
-            </div>
-            <p class="project__desc">
-              目标是用后端框架搭一个带增删改查的小接口，接上数据库，再写文档。目前还在学 HTTP 基础。
-            </p>
-            <ul class="tags">
-              <li class="tag">Node.js</li>
-              <li class="tag">REST API</li>
-            </ul>
-            <p class="project__wip">施工中，敬请期待 🚧</p>
-          </article>
-
-        </div>
+        <!-- → web/content/projects/*.md，一张卡一个文件 -->
+        <div class="projects" id="projectsList"></div>
       </div>
     </section>
 
@@ -255,36 +145,8 @@
           这一块建议每隔一两个月更新一次，让人知道你还在往前走。
         </p>
 
-        <ul class="now-list">
-          <li class="now-item card">
-            <i class="pulse"></i>
-            <div>
-              <p class="now-item__text">在学 Python 基础语法和文件读写，每天写一点小练习。</p>
-              <p class="now-item__meta">更新于 2026.9</p>
-            </div>
-          </li>
-          <li class="now-item card">
-            <i class="pulse"></i>
-            <div>
-              <p class="now-item__text">刚把 SQL 的增删改查过了一遍，下一步学多表连接。</p>
-              <p class="now-item__meta">更新于 2026.9</p>
-            </div>
-          </li>
-          <li class="now-item card">
-            <i class="pulse"></i>
-            <div>
-              <p class="now-item__text">在做：这个个人主页 —— v0.1 已经上线，正在想下一步加什么。</p>
-              <p class="now-item__meta">更新于 2026.10</p>
-            </div>
-          </li>
-          <li class="now-item card">
-            <i class="pulse pulse--todo"></i>
-            <div>
-              <p class="now-item__text">准备做：把学的机器学习概念整理成一篇能看懂的小文章。</p>
-              <p class="now-item__meta">计划中</p>
-            </div>
-          </li>
-        </ul>
+        <!-- → web/content/now.json -->
+        <ul class="now-list" id="nowList"></ul>
       </div>
     </section>
 
@@ -299,22 +161,25 @@
 
         <div class="contact">
 
-          <!-- 邮箱卡片 -->
+          <!-- 邮箱卡片：静态，禁用 JS 也要可见 → profile.email
+               注意邮箱在下面出现 3 次（显示文字 / mailto / data-email），
+               脚本会一起改，手工改的时候也别忘了另外两处 -->
           <div class="card contact-card">
             <h3 class="card__title">邮箱</h3>
-            <a class="contact-card__value" href="mailto:254180649@qq.com">254180649@qq.com</a>
+            <a class="contact-card__value" href="mailto:254180649@qq.com" id="contactEmail">254180649@qq.com</a>
             <button class="btn btn--small btn--ghost" id="copyEmailBtn" type="button" data-email="254180649@qq.com">
               复制邮箱
             </button>
           </div>
 
-          <!-- GitHub 卡片 -->
+          <!-- GitHub 卡片：静态，禁用 JS 也要可见 → profile.github -->
           <div class="card contact-card">
             <h3 class="card__title">GitHub</h3>
-            <a class="contact-card__value" href="https://github.com/Mucheng-zzb" target="_blank" rel="noopener noreferrer">
+            <a class="contact-card__value" href="https://github.com/Mucheng-zzb" id="contactGithub" target="_blank" rel="noopener noreferrer">
               github.com/Mucheng-zzb
             </a>
-            <p class="contact-card__hint">代码和练习都会放在这里</p>
+            <!-- → profile.contactNote（可选字段，缺省时保留这行原句） -->
+            <p class="contact-card__hint" id="contactGithubNote">代码和练习都会放在这里</p>
           </div>
 
         </div>
@@ -326,7 +191,7 @@
   <!-- ===== 页脚 ===== -->
   <footer class="footer">
     <div class="container footer__inner">
-      <p>© <span id="year">2026</span> 周同学 · 用 HTML / CSS / JavaScript 手写</p>
+      <p>© <span id="year">2026</span> <span id="footerName">周同学</span> <span id="footerNote">· 用 HTML / CSS / JavaScript 手写</span></p>
       <a class="footer__top" href="#hero">回到顶部 ↑</a>
     </div>
   </footer>

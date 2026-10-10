@@ -1,7 +1,8 @@
 /* ============================================================
-   个人主页 v1 —— 交互脚本
+   个人主页 —— 入口脚本
    ------------------------------------------------------------
-   这个文件一共做 5 件小事，每件事都是一个独立的 init 函数：
+   这个文件一共做 6 件事，每件事都是一个独立的函数：
+     renderContent()  —— 把 web/content/ 的数据渲染进页面（v0.2-C 起）
      initReveal()     —— 内容滚动到视野里时淡入
      initActiveNav()  —— 高亮当前所在的导航项
      initYear()       —— 自动更新页脚年份
@@ -11,7 +12,19 @@
    为什么用 defer？（见 index.html 最后的 <script> 标签）
    加 defer 后，脚本会等 HTML 全部解析完再执行，
    所以下面能放心地直接操作页面元素，不用套 DOMContentLoaded。
+
+   注意：renderContent() 必须排在 initReveal() 前面 ——
+   内容渲染会改变页面高度，先渲染完再让 IntersectionObserver 去观察，
+   否则首屏元素的淡入判定会基于错误的位置。
    ============================================================ */
+
+import { profile, now, projects } from './src/lib/content.js';
+import { renderProfile } from './src/ui/profile.js';
+import { renderHeroChips } from './src/ui/hero.js';
+import { renderAbout } from './src/ui/about.js';
+import { renderSkills } from './src/ui/skills.js';
+import { renderProjects } from './src/ui/projects.js';
+import { renderNow } from './src/ui/now.js';
 
 
 /* ============================================================
@@ -21,6 +34,27 @@
    先藏起来。万一 JS 报错或用户禁用 JS，内容依然正常显示 —— 不会白屏。
    ============================================================ */
 document.documentElement.classList.add('js');
+
+
+/* ============================================================
+   0.5 内容渲染
+   数据来自构建期注入的虚拟模块（见 web/build/content-plugin.js），
+   已经在构建时校验过，这里不再判断合法性。
+
+   姓名 / 定位 / 邮箱 / GitHub 四项【不在此列】：它们必须留在
+   index.html 的静态 HTML 里，保证禁用 JS 也能看见（决策 A）。
+   renderProfile() 只覆写这几处的文字，不重建节点。
+   ============================================================ */
+function renderContent() {
+  renderProfile(profile);
+  renderHeroChips(profile?.heroChips);
+  renderAbout(profile);
+  renderSkills(profile);
+  renderProjects(projects);
+  renderNow(now);
+}
+
+
 
 
 /* ============================================================
@@ -236,6 +270,7 @@ function initSmoothScrollFallback() {
    其他功能照常工作，而不是整个脚本停摆。
    ============================================================ */
 [
+  renderContent,
   initReveal,
   initActiveNav,
   initYear,
