@@ -37,41 +37,18 @@ Claude Code 在每个任务中必须遵守：
 
 ---
 
-## 2. 仓库根 CLAUDE.md 模板（建议让 Claude Code 创建）
+## 2. 仓库根 CLAUDE.md
 
-把下面内容保存为仓库根目录的 `CLAUDE.md`。它会在每次会话自动生效。
+仓库根已有 `CLAUDE.md`（仓库级约定，每次会话自动生效）——**它是这些约定的唯一事实来源**。
 
-~~~markdown
-# CLAUDE.md
+本节**不再复制一份模板**：v0.2-B 时期这里曾内嵌一份 `CLAUDE.md` 的副本，后来与真实的
+`CLAUDE.md` 分叉，留下过「唯一工作区是 `v2.1-A/`」这种过期约定（已在 v0.2-B 收尾时修正）。
+同一份约定存两处，一定会再次分叉。
 
-## 项目
-个人作品集（v1.0 目标）。前台 = GitHub Pages 静态站（Vite + 原生 JS，不用框架）；
-后台 = FastAPI（`api/`），独立部署，前端必须能在后端失效时降级。
-
-## 必读
-- `docs/ROADMAP.md`：版本范围、验收标准、砍单顺序
-- `docs/ARCHITECTURE.md`：架构决策（ADR）、API 契约、内容模型
-
-## 硬性约束
-- 不引入前端框架（React/Vue/Svelte/Next）。
-- 不做用户系统；不做 SSR；不引入向量数据库。
-- 密钥一律走环境变量；`.env` 不得入库；`.env.example` 必须同步更新。
-- 每个外部依赖必须实现降级路径。
-- 首屏关键内容（姓名/定位/联系方式）必须写在静态 HTML 里，禁用 JS 也要可见。
-- 不擅自改动 `web/content/` 的内容（那是我的写作，不是你的素材）。
-- 唯一工作区是 `v2.1-A/`；不要从 `v1.0/` 提交或推送。
-
-## 命令
-- 前端：`npm ci` / `npm run dev` / `npm run build` / `npm run check` / `npm test`
-- 后端：`pip install -r api/requirements.txt` / `uvicorn app.main:app --reload`（在 `api/` 下）/ `pytest`
-
-## 提交规范
-Conventional Commits，描述用中文：`feat:` `fix:` `docs:` `chore:` `refactor:` `test:`
-
-## 完成标准
-任何任务结束前必须：运行构建与测试、粘贴真实输出、报告未完成项。
-不要用「应该」「大概」描述结果。
-~~~
+维护约定：
+1. 要改仓库级约定 → 直接改根目录 `CLAUDE.md`，并在 `docs/HANDOFF.md` 的决策登记表里记一笔；
+2. 本手册只写「怎么做」（流程、逐版指令块、禁止清单），不重复「项目约束」；
+3. 新增任何约束时，同步更新根目录 `CLAUDE.md`。
 
 ---
 
