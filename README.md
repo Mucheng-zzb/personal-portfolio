@@ -43,9 +43,19 @@ personal-portfolio/
 ├── .github/workflows/
 │   └── web-deploy.yml     部署流水线：push main 后构建 web/ 并发布到 Pages
 ├── web/                  前端（Vite 项目）—— 唯一开发入口
-│   ├── index.html          页面结构
+│   ├── content/            ★ 页面内容都在这里，改内容只改这里
+│   │   ├── profile.json      姓名/定位/邮箱/GitHub/技能/关于我/正在学什么
+│   │   ├── now.json          最近在做什么（时间线）
+│   │   └── projects/*.md     项目卡，一个文件一张
+│   ├── build/              构建期内容管线（只在构建时跑，不进浏览器）
+│   │   ├── content-schema.js  纯函数校验，可单测
+│   │   └── content-plugin.js  Vite 插件：虚拟模块 + 校验失败 + dev 监听
+│   ├── src/                浏览器侧代码
+│   │   ├── lib/content.js     读取 virtual:content 的薄封装
+│   │   └── ui/*.js            渲染模块（profile / hero / about / skills / projects / now）
+│   ├── index.html          页面结构（只留四个首屏静态字段，其余由 JS 渲染）
 │   ├── style.css           所有样式（颜色、字体、间距、响应式）
-│   ├── script.js           交互（滚动淡入、导航高亮、复制邮箱…）
+│   ├── script.js           入口：渲染内容 + 交互（滚动淡入、导航高亮、复制邮箱…）
 │   ├── vite.config.js      构建配置（base 必须指向 Pages 的子路径）
 │   ├── package.json        四个脚本：dev / build / preview / check
 │   ├── node_modules/       依赖（不入库，已写进 .gitignore）
@@ -103,37 +113,108 @@ npm run dev     # 启动开发服务器
 
 ## 改成你自己的内容
 
-### 已经填好的（不用再动）
+**内容全在 `web/content/` 下，改内容不用碰 HTML。**（v0.2-C 起）
 
-名字「周同学」、首屏一句话介绍、GitHub 链接（`Mucheng-zzb`）、邮箱（`254180649@qq.com`）、
-页脚署名、浏览器标题 —— 这些都已经换成你的真实信息了。
-
-### 还需要你改的（3 处）
-
-`web/index.html` 里剩下的地方都用 `TODO` 注释标出来了。**用编辑器搜索 `TODO` 就能全部找到**：
-
-| 编号 | 要改什么 | 大概在文件哪里 |
+| 你想改什么 | 改哪个文件 | 对应字段 |
 | :--- | :--- | :--- |
-| TODO 1 | About 的自我介绍（我按你给的信息写了草稿，建议改成你自己的话） | `#about` 板块 |
-| TODO 2 | 技能标签（现在填的是 Python / Node.js / SQL / Pandas 这些，改成你真正会的） | `#skills` 板块 |
-| TODO 3 | 最近在做什么（这一块最需要你亲自写，也最值得定期更新） | `#now` 板块 |
+| 姓名 / 一句话定位 / 邮箱 / GitHub | `web/content/profile.json` | `name` / `tagline` / `email` / `github` |
+| 首屏那三个小标签 | `web/content/profile.json` | `heroChips` |
+| 「关于我」的两段正文 | `web/content/profile.json` | `about` |
+| 「正在学什么」那张卡 | `web/content/profile.json` | `learning` |
+| 技能分组 | `web/content/profile.json` | `skills` |
+| 项目卡 | `web/content/projects/*.md` | 一个文件一张卡 |
+| 「最近在做什么」时间线 | `web/content/now.json` | 数组，一项一行 |
 
-以后要是想换名字、换邮箱、换 GitHub 地址，直接在 `web/index.html` 里搜你现在的内容就能定位到。
+改完在 `web/` 下跑 `npm run build` 重新构建；本地看效果用 `npm run dev`（自动刷新）。
 
-> **注意**：邮箱在 `#contact` 板块里出现了 **2 处** —— 显示的文字和「复制邮箱」按钮的 `data-email` 属性。
-> 改的时候两个要一起改，不然按钮复制的还是旧地址。
+### 怎么改个人信息
 
-### 几个常见操作
+打开 `web/content/profile.json`，直接改对应的值：
 
-**加一个技能标签** —— 复制一整行然后改文字：
-
-```html
-<li class="tag">Python</li>
+```json
+{
+  "name": "周同学",
+  "tagline": "大一在读，在学后端与 AI，想做出自己的第一个作品。",
+  "email": "254180649@qq.com",
+  "github": "https://github.com/Mucheng-zzb"
+}
 ```
 
-**加一个项目卡片** —— 复制 `#projects` 里任意一个 `<article class="card project project--wip">...</article>` 整段，粘在它后面再改内容。
+- `name` 会自动出现在**三个地方**：页头 logo、首屏大标题、页脚。改一处就够了。
+- `github` 要写完整的 `https://...`，页面上的显示文字会自动去掉 `https://` 前缀。
+- 邮箱只要改 `email` 一处，链接、显示文字、复制按钮三处会一起跟着变。
 
-**删掉不要的板块** —— 直接删掉整个 `<section>...</section>`，同时把页头 `<nav>` 里对应的那个链接也删掉。底部的 `01 / 02 / 03` 编号记得顺手改成连续的。
+### 怎么改技能分组
+
+`skills` 是一个数组，**一个对象 = 页面上的一张卡片**：
+
+```json
+"skills": [
+  { "title": "后端开发", "items": ["Python", "SQL", "Git"] },
+  { "title": "工具与基础", "items": ["HTML / CSS", "VS Code"] }
+]
+```
+
+- 加一组 = 往数组里加一个对象；加一个标签 = 往 `items` 里加一个字符串。
+- 删掉一组 = 删掉那个对象。整站样式会自动排下去，不用管布局。
+
+### 怎么改「正在学什么」
+
+`learning` 是字符串数组，一项就是清单里的一行：
+
+```json
+"learning": ["Python 编程基础与常用库", "SQL 与数据库设计入门"]
+```
+
+> 别和 `web/content/now.json` 搞混了：`learning` 是「关于我」右边那张**勾选清单**，
+> `now.json` 是下面**「最近在做什么」的时间线**，两码事。
+
+### 怎么改首屏三个小标签
+
+`heroChips` 是字符串数组，首屏名字下面那三个小圆标签就按这个顺序渲染：
+
+```json
+"heroChips": ["后端开发", "AI · 数据", "持续学习中"]
+```
+
+### 如何新增一个项目
+
+**一步：在 `web/content/projects/` 里新建一个 `.md` 文件。** 文件名就是它的 slug，必须是小写英文 + 连字符。
+
+```markdown
+---
+title: 数据小工具
+status: planned          # done | wip | planned
+date: 2026-10-11         # 必须是 YYYY-MM-DD，且是真实存在的日期
+tags: [Python, Pandas]   # 数组，不能写成字符串
+summary: 一句话说明它解决什么问题，会显示在卡片上
+order: 3                 # 排序用，越小越靠前
+repo: https://github.com/Mucheng-zzb/xxx   # 可选
+live:                                      # 可选，在线可访问地址
+cover: /images/xxx.webp                    # 可选，以 / 开头
+featured: false                            # 可选，true 会占满一整行（仅 done 的项目生效）
+---
+
+正文写这里（背景 / 做了什么 / 技术栈 / 难点 / 收获）。
+正文目前不会显示在页面上，是给 v0.3 的详情页留的。
+```
+
+保存后 `npm run build`，卡片就出来了 —— **全程不用碰 HTML**。
+
+### 还需要你亲自改的（3 条）
+
+这几处我只能按你给的信息写草稿，得你自己换成真实内容：
+
+| 编号 | 要改什么 | 改哪里 |
+| :--- | :--- | :--- |
+| 1 | 「关于我」的自我介绍（现在是草稿，建议改成你自己的话） | `web/content/profile.json` → `about` |
+| 2 | 技能标签（现在填的是 Python / Node.js / SQL / Pandas 这些，改成你真正会的） | `web/content/profile.json` → `skills[].items` |
+| 3 | 「最近在做什么」（最需要你亲自写，也最值得定期更新） | `web/content/now.json` → 每项的 `text` |
+
+> 另外 `data-toolkit` / `notes-collection` / `api-service` 三张卡都标着 `status: planned`。
+> 真开工之后记得把状态改成 `wip`（建设中）或 `done`（已完成）—— 别留在 `planned` 上，也别没做完就标 `done`。
+
+### 几个常见操作
 
 **改主题色** —— 打开 `web/style.css`，最上面的 `:root` 里改这两行就行，整站的蓝色渐变会一起变：
 
@@ -141,6 +222,26 @@ npm run dev     # 启动开发服务器
 --accent-1: #4f7cff;   /* 主色（蓝） */
 --accent-2: #a855f7;   /* 辅色（紫） */
 ```
+
+**改页面上的固定文案**（板块标题、「想交流…都欢迎」这类）—— 那些不是内容数据，写在 `web/index.html` 里。
+只有 `web/content/` 里有的东西才归数据管。
+
+**删掉不要的板块** —— 删掉 `web/index.html` 里整个 `<section>...</section>`，
+同时把页头 `<nav>` 里对应的链接也删掉。底部的 `01 / 02 / 03` 编号记得顺手改成连续的。
+
+### 改坏了会怎样
+
+**构建会直接失败，并告诉你哪个文件、哪个字段、期望什么。** 例如把 `status` 写成 `doing`：
+
+```text
+[content] 内容校验失败，共 1 处问题：
+  ✗ web/content/projects/data-toolkit.md
+      · status: 非法值「doing」（允许：done | wip | planned）
+构建已中止：npm run build 退出码非 0。修好上面 1 处后重新构建。
+```
+
+一次会把**所有**问题都列出来，不用改一处、构建一次、再发现下一处。
+另外，字段名拼错（比如 `sumary`）也会报错，不会静默忽略。
 
 ---
 

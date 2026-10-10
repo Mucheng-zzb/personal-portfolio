@@ -256,7 +256,7 @@ content/*.md  ──(Vite import.meta.glob，构建时)──►  content.js
 | 后端 API 超时（> 3s）或非 2xx | 静默使用内置快照；控制台 warning；页脚显示「实时数据不可用」小字 |
 | LLM 不可用 / 限额用尽 | AI 浮层显示「暂时不可用，欢迎发邮件」；入口按钮不消失（保持可见性） |
 | 数据库不可用 | 留言板区域显示「留言板暂时不可用」，其余页面正常 |
-| JavaScript 完全禁用 | 姓名、定位、联系方式、项目列表（首屏静态 HTML）可见 |
+| JavaScript 完全禁用 | 姓名、定位、邮箱、GitHub 可见（这四项写在首屏静态 HTML 里）；项目卡列表由 JS 渲染，禁用 JS 时不可见（v0.2-C 决策 A，与 ROADMAP 口径一致） |
 | 图片加载失败 | `onerror` 回退到占位图，不出现破图 |
 
 **性能预算（超出即视为 bug）**
@@ -297,7 +297,15 @@ draft: false
 正文（Markdown）
 ```
 
-**`profile.json`**：`name / tagline / location / email / github / resume / skills[] / about[]`
+**`profile.json`**：`name / tagline / location / email / github / resume / heroChips[] / about[] / learning[] / skills[{title, items[]}] / contactNote / footerNote`
+
+- 必填 8 项：`name`、`tagline`、`email`、`github`、`heroChips[]`、`about[]`、`learning[]`、`skills[{title, items[]}]`
+  （字符串项一律要求非空；`email` 需含 `@`；`github` 需 `https://` 开头；`skills` 每项的 `items` 也必须非空）
+- 可选 4 项：`location`、`resume`（v0.4 才用）、`contactNote`、`footerNote` —— 缺省时不渲染对应内容，但**不报错**
+- **列表型内容（`heroChips` / `about` / `learning` / `skills`）都以 `profile.json` 为唯一事实来源；
+  新增一组技能或一条在学内容 = 改 `profile.json`，不需要改代码。**
+- 未知字段一律报错（拼错字段名必须当场构建失败）
+
 **`now.json`**：`[{ text, date, status: doing|planned|done }]`
 
 **校验规则**：构建时校验必填字段与枚举值，缺字段直接**构建失败**（宁可构建红，不要上线坏）。
