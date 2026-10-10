@@ -17,6 +17,7 @@
 | v0.2-A | ✅ 完成（tag `v0.2-A` → 3c63ceb） | 构建可复现；根目录三副本相对 v0.1 为 11 增 0 删 |
 | v0.2-B | ✅ 完成（run #2 / #3 success，硬门禁通过） | 线上已由 Actions 产物提供；实测 push → 上线约 30 秒 |
 | v0.2-C | ✅ 完成（`39a83df` / `7bf50f8` / `bbcb0b9` / `8a3925c`，已推送） | run #4 success（30 秒）；线上与本地 `web/dist` 逐字节相同（sha256 `0b366317…`）；体积 JS 1.41→4.64 KB gzip |
+| A 块（v0.2-B 遗留） | ✅ 完成（`ee90d6c` / `be9a6a2` / `363c643`） | ADR-011 改为 tag 留档；CLAUDE.md 已入库；docs/ 不在 paths 白名单，未触发部署，线上未受影响 |
 | v0.2-D | ⬜ 未开始 | 见 §2 队列 |
 | v0.3 → v1.0 | ⬜ 未开始 | 指令块已备齐（见 §2） |
 
@@ -26,18 +27,29 @@
 
 ### 1.1 v0.2-C —— ✅ 已完成（2026-10-11，架构师已核验）
 
-线上核验证据见 §4。**仍剩下一条只有你能做的事**：核对 `web/content/now.json` 里由「2026.9」
-补成的月初日期、以及 `web/content/projects/personal-portfolio.md` 的 `date: 2026-10-11`
-（README 的「还需要你亲自改」已列出这 4 条）。
+线上核验证据见 §4。
 
-### 1.2 v0.2-B 遗留的「A 块」——必须在 v0.3 之前补
+**日期修正进展**：用户已把 `web/content/now.json` 的三条改成真实日期
+（`2026-09-05` / `2026-09-09` / `2026-10-10`，**未提交**）；仍未确认的是 `now.json` 第 4 条与
+`web/content/projects/personal-portfolio.md` 的 `date: 2026-10-11`。
+提交 `now.json` 时要一并同步 README 的「我推断出来的日期」表（3 行已过期），
+并把该小节标题的「（3 条）」改成「（4 条）」。
 
-| 项 | 现状 | 要做 |
-| :-- | :-- | :-- |
-| ARCHITECTURE **ADR-011** | ❌ 仍是过期版本（标题「工作区与版本命名」，写的是 `v2.1-A/` + `v1.0/` 目录式留档） | 改写为「单工作区 + git tag 留档」，废弃目录式留档 |
-| 仓库根 **CLAUDE.md** | ❌ 不存在 | 按 PLAYBOOK §2 模板建立，并补「本机环境注意」（Watt Toolkit 代理 / gh CLI / 线上部署判定标记 / gzip 口径） |
+### 1.2 A 块 —— ✅ 已完成（`ee90d6c` / `be9a6a2` / `363c643`）
 
-> 这两项在 v0.2-B 时期被跳过（当时的提交只做了 workflow 与 README、删三件套）。ADR-011 是**给未来会话的指令**，过期会误导下一个接手的人。
+| 项 | 结果 |
+| :-- | :-- |
+| ARCHITECTURE **ADR-011** | ✅ 已改写为「单工作区 + git tag 留档」（`v2.1-A` 仅作为「已废弃」与背景被提及，这是正确的写法） |
+| 仓库根 **CLAUDE.md** | ✅ 已建立并入 `git ls-files`（含本机环境注意） |
+| `docs/HANDOFF.md` | ✅ 已提交；ARCHITECTURE §3 目录清单已补一行 |
+
+**仍未修的一处模板失真**：`docs/CLAUDE-CODE-PLAYBOOK.md` §2 的 CLAUDE.md 模板第 62 行仍写着
+「唯一工作区是 `v2.1-A/`；不要从 `v1.0/` 提交或推送。」。它是 **CLAUDE.md 的模板**，
+留着会让将来重新生成的 CLAUDE.md 再次带上过期约定。
+
+**决定（架构师）：删除重复模板，而不是「就地改对」** —— §2 改为指向仓库根 `CLAUDE.md` + 维护约定。
+根因是「同一份约定存了两处」，就地改对只解决这一次；已核实没有任何文档依赖 §2 的模板内容
+（§0/§1 只说必读 `CLAUDE.md`，手册末尾已写「新增约束请同步更新根 CLAUDE.md」，ARCHITECTURE §3 的目录树也列了它）。
 
 ---
 
@@ -63,8 +75,8 @@
 
 | # | 决策 | 状态 | 应写进哪里 |
 | :-- | :-- | :-- | :-- |
-| D1 | 版本留档用 git tag，废弃 `v1.0/`、`v2.1-A/` 目录式留档 | ⏳ 待落地（见 §1.2） | ARCHITECTURE ADR-011 |
-| D2 | 仓库根 CLAUDE.md（含本机环境注意） | ⏳ 待落地 | `CLAUDE.md` |
+| D1 | 版本留档用 git tag，废弃 `v1.0/`、`v2.1-A/` 目录式留档 | ✅ ADR-011 已落地；PLAYBOOK §2 模板待修 | ARCHITECTURE ADR-011 / PLAYBOOK §2 |
+| D2 | 仓库根 CLAUDE.md（含本机环境注意） | ✅ 已落地 | `CLAUDE.md` |
 | D3 | 内容管线在构建期（校验 / draft 排除 / sitemap），前端不做运行时校验 | ✅ 已落地 | `web/build/*` |
 | D4 | 禁用 JS 只承诺 姓名/定位/邮箱/GitHub；项目卡由 JS 渲染 | ✅ 已落地 | ARCHITECTURE §4 |
 | D5 | 不做 `web/snapshot/`、不做 `export_content.py`（推迟到 v0.5-A） | ✅ 本期遵守，v0.3-B 复核 | ARCHITECTURE §3 / PLAYBOOK §5.2-B |
@@ -93,6 +105,7 @@
 | 10-11 | v0.2-C 实现与本地演练 | ✅ | 架构师代码审查：`content-schema.js` 529 行、插件用 `hotUpdate`、`MD_COLLECTIONS` 预留 filter 钩子；Claude Code 本地 10 步全绿（含两条「故意失败」演练的真实输出，已在其会话中贴出） |
 | 10-11 | v0.2-C 体积（zlib 口径） | ✅ 预算内 | CSS 2.81→2.81 KB（sha256 不变）、HTML 4.29→3.41 KB、JS 1.41→4.64 KB；预算 150KB |
 | 10-11 | **v0.2-C 部署（推送后）** | ✅ 通过 | run #4（`bbcb0b9`）success，30 秒；线上 HTML 与本地 `web/dist/index.html` **逐字节相同**（sha256 `0b366317…`）；新 JS `index-Co5RLd3b.js` 200，旧 JS 与 `/script.js` 均 404；线上 JS 内含 数据小工具 / 第一个 API 服务 / 本站笔记合集 / Python 编程基础与常用库 / FastAPI / SQLite；静态 HTML 含 姓名·定位·邮箱·GitHub·「正在学什么」 |
+| 10-11 | **A 块（ADR-011 + CLAUDE.md + HANDOFF）** | ✅ 通过 | `ee90d6c` / `be9a6a2` / `363c643` 已推送；`git ls-files` 含 `CLAUDE.md`；ADR-011 标题已是「单工作区 + git tag 留档」；无新 workflow run（docs/ 不在 paths），线上仍 200 |
 
 ---
 
