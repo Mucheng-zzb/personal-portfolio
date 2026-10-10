@@ -59,7 +59,9 @@ Claude Code 在每个任务中必须遵守：
 - 每个外部依赖必须实现降级路径。
 - 首屏关键内容（姓名/定位/联系方式）必须写在静态 HTML 里，禁用 JS 也要可见。
 - 不擅自改动 `web/content/` 的内容（那是我的写作，不是你的素材）。
-- 唯一工作区是 `v2.1-A/`；不要从 `v1.0/` 提交或推送。
+- 唯一工作区与仓库根是同一个目录（`personal-portfolio`）；版本留档用 git tag，不用目录。
+- 根目录 `index.html` / `script.js` / `style.css` 是 v0.2-B 完成前的临时保活副本：不要编辑，也不要在硬门禁通过前删除。
+- `npm run check` 在 v0.2-D 之前只是 `vite build` 的占位，不是代码检查。
 
 ## 命令
 - 前端：`npm ci` / `npm run dev` / `npm run build` / `npm run check` / `npm test`
