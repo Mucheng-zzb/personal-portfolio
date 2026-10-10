@@ -29,27 +29,23 @@
 
 线上核验证据见 §4。
 
-**日期修正进展**：用户已把 `web/content/now.json` 的三条改成真实日期
-（`2026-09-05` / `2026-09-09` / `2026-10-10`，**未提交**）；仍未确认的是 `now.json` 第 4 条与
-`web/content/projects/personal-portfolio.md` 的 `date: 2026-10-11`。
-提交 `now.json` 时要一并同步 README 的「我推断出来的日期」表（3 行已过期），
-并把该小节标题的「（3 条）」改成「（4 条）」。
+**日期修正已完成**（`9fee6c2`）：用户把 `now.json` 三条改成真实日期
+（`2026-09-05` / `2026-09-09` / `2026-10-10`），README 的「我推断出来的日期」表已同步。
+仍未确认的只剩 `now.json` 第 4 条与 `web/content/projects/personal-portfolio.md` 的 `2026-10-11`（已标注保留）。
 
-### 1.2 A 块 —— ✅ 已完成（`ee90d6c` / `be9a6a2` / `363c643`）
+### 1.2 A 块与收尾 —— ✅ 全部完成（`ee90d6c` / `be9a6a2` / `363c643` / `9fee6c2` / `476148b` / `c8af79e`）
 
 | 项 | 结果 |
 | :-- | :-- |
-| ARCHITECTURE **ADR-011** | ✅ 已改写为「单工作区 + git tag 留档」（`v2.1-A` 仅作为「已废弃」与背景被提及，这是正确的写法） |
-| 仓库根 **CLAUDE.md** | ✅ 已建立并入 `git ls-files`（含本机环境注意） |
-| `docs/HANDOFF.md` | ✅ 已提交；ARCHITECTURE §3 目录清单已补一行 |
+| ARCHITECTURE **ADR-011** | ✅ 改写为「单工作区 + git tag 留档」 |
+| 仓库根 **CLAUDE.md** | ✅ 已建立入库；PLAYBOOK §2 的重复模板已删除，§2 改为指向它 |
+| `docs/HANDOFF.md` | ✅ 已提交并持续更新 |
+| 近况日期 | ✅ `now.json` 三条改为真实日期，README 推断表同步 |
+| 线上 | ✅ run（`c8af79e`）success 32 秒；线上 HTML/JS 与本地 `web/dist` 逐字节相同 |
 
-**仍未修的一处模板失真**：`docs/CLAUDE-CODE-PLAYBOOK.md` §2 的 CLAUDE.md 模板第 62 行仍写着
-「唯一工作区是 `v2.1-A/`；不要从 `v1.0/` 提交或推送。」。它是 **CLAUDE.md 的模板**，
-留着会让将来重新生成的 CLAUDE.md 再次带上过期约定。
-
-**决定（架构师）：删除重复模板，而不是「就地改对」** —— §2 改为指向仓库根 `CLAUDE.md` + 维护约定。
-根因是「同一份约定存了两处」，就地改对只解决这一次；已核实没有任何文档依赖 §2 的模板内容
-（§0/§1 只说必读 `CLAUDE.md`，手册末尾已写「新增约束请同步更新根 CLAUDE.md」，ARCHITECTURE §3 的目录树也列了它）。
+**教训（已写进 §5）**：我两次把验收判据写成「grep 不到 `v2.1-A`」，而我自己给的替换正文里
+正当地点了这个已废弃路径的名字。**字面 0 命中不是好判据**，应写成语义判据：
+「没有一处把 `v2.1-A` 当作在用的工作区」。
 
 ---
 
@@ -75,7 +71,7 @@
 
 | # | 决策 | 状态 | 应写进哪里 |
 | :-- | :-- | :-- | :-- |
-| D1 | 版本留档用 git tag，废弃 `v1.0/`、`v2.1-A/` 目录式留档 | ✅ ADR-011 已落地；PLAYBOOK §2 模板待修 | ARCHITECTURE ADR-011 / PLAYBOOK §2 |
+| D1 | 版本留档用 git tag，废弃 `v1.0/`、`v2.1-A/` 目录式留档 | ✅ 已落地（ADR-011 + PLAYBOOK §2） | ARCHITECTURE ADR-011 / PLAYBOOK §2 |
 | D2 | 仓库根 CLAUDE.md（含本机环境注意） | ✅ 已落地 | `CLAUDE.md` |
 | D3 | 内容管线在构建期（校验 / draft 排除 / sitemap），前端不做运行时校验 | ✅ 已落地 | `web/build/*` |
 | D4 | 禁用 JS 只承诺 姓名/定位/邮箱/GitHub；项目卡由 JS 渲染 | ✅ 已落地 | ARCHITECTURE §4 |
@@ -106,6 +102,7 @@
 | 10-11 | v0.2-C 体积（zlib 口径） | ✅ 预算内 | CSS 2.81→2.81 KB（sha256 不变）、HTML 4.29→3.41 KB、JS 1.41→4.64 KB；预算 150KB |
 | 10-11 | **v0.2-C 部署（推送后）** | ✅ 通过 | run #4（`bbcb0b9`）success，30 秒；线上 HTML 与本地 `web/dist/index.html` **逐字节相同**（sha256 `0b366317…`）；新 JS `index-Co5RLd3b.js` 200，旧 JS 与 `/script.js` 均 404；线上 JS 内含 数据小工具 / 第一个 API 服务 / 本站笔记合集 / Python 编程基础与常用库 / FastAPI / SQLite；静态 HTML 含 姓名·定位·邮箱·GitHub·「正在学什么」 |
 | 10-11 | **A 块（ADR-011 + CLAUDE.md + HANDOFF）** | ✅ 通过 | `ee90d6c` / `be9a6a2` / `363c643` 已推送；`git ls-files` 含 `CLAUDE.md`；ADR-011 标题已是「单工作区 + git tag 留档」；无新 workflow run（docs/ 不在 paths），线上仍 200 |
+| 10-11 | **收尾（PLAYBOOK §2 + 近况日期）** | ✅ 通过 | `476148b` / `9fee6c2` 已推送；run（`c8af79e`）success 32 秒；线上 JS `index-CinFOPtF.js` 与本地逐字节相同；线上 bundle 含 2026-09-05 / 09-09 / 10-10 / 10-11，旧推断值 0 命中 |
 
 ---
 
@@ -121,6 +118,9 @@
 - **gzip 体积口径**：统一用 Node `zlib.gzipSync`（`gzip` 命令行会多写文件名与 mtime，数字不可比）。
 - **无 JS 降级**：姓名 / 定位 / 邮箱 / GitHub 必须留在静态 HTML。
 - **可回滚锚点**：远端已有 tag `v0.2-B` → `a2e7f18`（该 ref 自带 `web-deploy.yml`，可用于 `workflow_dispatch` 回滚）。
+- **验收判据要写语义，不要写字面 grep**：文档修订常常需要「点名已废弃的旧路径」
+  （ADR-011 与 PLAYBOOK §2 都要提到 `v2.1-A` 才能把废弃说明白），所以判据应写成
+  「没有一处把 X 当作在用的做法」，而不是「grep 不到 X」。这条已两次踩到。
 
 ---
 
