@@ -217,6 +217,7 @@ personal-portfolio/
 │   ├── ROADMAP.md
 │   ├── ARCHITECTURE.md
 │   ├── CLAUDE-CODE-PLAYBOOK.md
+│   ├── HANDOFF.md                # 架构师交接/决策登记/核验记录（非事实来源）
 │   ├── API.md
 │   └── BASELINE.md               # Lighthouse 基线
 ├── CLAUDE.md                     # 给 Claude Code 的仓库级约定
