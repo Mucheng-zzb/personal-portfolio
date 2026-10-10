@@ -1,0 +1,9 @@
+# 依赖与产物：不是我们写的，也不要格式化
+node_modules
+dist
+
+# lock 文件由 npm 生成，格式化它只会制造无意义的 diff
+package-lock.json
+
+# 笔记 / 项目正文是手写内容，排版是写作的一部分，不要交给格式化器
+content/**/*.md
