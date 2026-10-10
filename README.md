@@ -14,7 +14,7 @@
 | 位置 | 是什么 | 现状 |
 | :--- | :--- | :--- |
 | `web/` | **唯一开发入口**，以后所有改动都做在这里 | 已可用：`cd web && npm run dev` |
-| 根目录 `index.html` / `style.css` / `script.js` | **临时保活副本，请勿编辑** | 线上目前仍由它提供（Pages 还是从 main 分支根目录部署）|
+| 根目录 `index.html` / `style.css` / `script.js` | **临时保活副本，请勿编辑** | 线上暂时仍由它提供；等 Pages 的 Source 切成 GitHub Actions，就由 `web/` 的构建产物接管 |
 | `api/` | 后端，v0.5 才动工 | 暂时只有一份说明（`api/README.md`）|
 
 **过渡期的三条规矩**
@@ -150,9 +150,64 @@ npm run dev     # 启动开发服务器
 
 ## 部署到 GitHub Pages
 
-> ⚠️ **这一节记录的是 v0.1 的部署方式（从 main 分支根目录部署），目前仍然生效。**
-> v0.2-B 会改成 GitHub Actions 构建 `web/dist` 后自动发布，届时这一节会重写。
-> 在那之前，**请不要在仓库 Settings → Pages 里改任何设置**，否则线上会挂。
+> **v0.2-B（当前）**：线上由 **GitHub Actions** 部署 —— push 到 `main` 之后，
+> `.github/workflows/web-deploy.yml` 会构建 `web/`，把 `web/dist` 发布到 Pages。
+> **线上 URL 不变**：<https://mucheng-zzb.github.io/personal-portfolio/>
+
+### 一次性人工步骤：把 Source 改成 GitHub Actions
+
+**这一步只能你自己在网页上点**（Claude Code 没有你的 GitHub 权限）：
+
+1. 进仓库 → **Settings** → 左侧菜单 **Pages**
+2. **Source** 选 **GitHub Actions**（**不要**选 “Deploy from a branch”）
+3. 选完之后 Branch / 文件夹那两个下拉框会消失，这是正常的，不用再填
+
+> ⚠️ **切换的那一瞬间线上会 404**，一直到 workflow 完成第一次部署为止。
+> 所以顺序是：**先把 workflow 推上去，再去改这个设置**，空窗期越短越好。
+
+### 之后怎么更新
+
+push 到 `main` 就会自动部署，约 1～3 分钟生效：
+
+```bash
+git add .
+git commit -m "docs: 更新自我介绍"
+git push
+```
+
+**只有这些路径变了才会触发部署**（见 workflow 里的 `paths`）：`web/**`、workflow 文件本身，
+以及过渡期内的根目录 `index.html` / `script.js` / `style.css`。
+只改 `docs/` 或 `README.md` 不会重新部署 —— 这是有意的，省 CI 时间。
+
+### 回滚
+
+1. **最省事的退法**：`Actions → Deploy web to GitHub Pages → Run workflow`，
+   在 `Use workflow from` 里选一个旧的 ref，再跑一次。
+   > ⚠️ 只能选**本身就包含这个 workflow 文件**的 ref —— 也就是这次改动合并进 `main` 之后
+   > 打的 tag（`v0.2-B` 及以后）。
+   > 更早的 tag（比如 `v0.2-A`）里还没有这个文件，GitHub 找不到 workflow，选它会直接报错 ——
+   > 那种情况走下面第 2 条。
+2. **或者 `git revert`** 掉出问题的那次提交，push 后会自动重新部署一次。
+
+### ⚠️ 「分支部署」这条退路在 v0.2-B 之后会失效
+
+v0.2-B 的硬门禁要求删掉根目录的 `index.html` / `script.js` / `style.css`。
+**这三件套一删，「把 Source 切回 `Deploy from a branch`」这条最原始的回滚路径就没用了** ——
+分支根目录下已经没有任何网页文件了，切回去只会得到一个 404 的站点。
+
+要临时恢复这条退路，得先把三件套从旧 tag 里取回来：
+
+```bash
+git checkout <tag> -- index.html script.js style.css
+```
+
+把 `<tag>` 换成还留着三件套的 tag（例如 `v0.2-A`），push，然后把 Source 切回
+`Deploy from a branch` + `main` + `/ (root)`。
+
+---
+
+> 下面第 1～3 步是 **v0.1 时代从零建仓库**的过程说明，仓库已经建好了，留着作回顾，
+> **不要照着做，也不要改任何 Pages 设置**。
 
 免费，不用买服务器。做完之后你会得到一个公网地址，别人点开就能看到你的主页。
 
@@ -193,10 +248,14 @@ git push -u origin main
 
 ### 第 4 步：开启 GitHub Pages
 
+> v0.2-B 起这里已经改成 **Source 选 `GitHub Actions`**，做法见本页顶部的
+> 「一次性人工步骤」。下面这几行是 v0.1 的老做法（`Deploy from a branch`），
+> **已经不是线上实际的配置**，只留作对照，别照着点。
+
 1. 在仓库页面点 **Settings**（设置）
 2. 左侧菜单找到 **Pages**
-3. **Source** 选 `Deploy from a branch`
-4. **Branch** 选 `main`，右边的文件夹保持 `/ (root)`，点 **Save**
+3. ~~**Source** 选 `Deploy from a branch`~~ → 现在选 **GitHub Actions**
+4. ~~**Branch** 选 `main`，右边的文件夹保持 `/ (root)`，点 **Save**~~
 5. 等 1～3 分钟（第一次会慢一点），刷新这个页面，顶部会出现绿色的一条：
    `Your site is live at https://...`
 
@@ -214,14 +273,11 @@ https://你的用户名.github.io/personal-portfolio/
 
 ### 以后改了内容怎么更新
 
-- **网页上传**：进仓库 → 点开要改的文件 → 右上角铅笔图标 ✏️ → 改完点 **Commit changes**，等 1 分钟就生效
-- **命令行**：改完文件后执行三条命令
+见本页顶部的「[之后怎么更新](#之后怎么更新)」—— push 到 `main` 即自动部署。
 
-```bash
-git add .
-git commit -m "更新：改了自我介绍"
-git push
-```
+> **v0.1 的历史做法**：进仓库 → 点开文件 → 右上角铅笔图标 ✏️ → 改完 **Commit changes**，
+> 等 1 分钟生效。这个操作现在**依然会触发部署**（commit 落到了 `main` 上），
+> 但只建议用来改 `README.md` 这类文件；`web/` 的改动请在本地做完、构建过再 push。
 
 ---
 

@@ -1,0 +1,77 @@
+# 部署前端到 GitHub Pages（v0.2-B）
+#
+# 触发方式有两种：
+#   ① push 到 main —— 但只在这些路径变了时才跑（见下面的 paths 白名单）。
+#   ② 手动 workflow_dispatch —— 回滚时用，可以指定旧的 ref 重新发布。
+#
+# 前置条件：仓库 Settings → Pages → Source 必须选 "GitHub Actions"。
+# 这一步只能人工在网页上做，workflow 自己改不了（GitHub 没给这个 API 权限）。
+
+name: Deploy web to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-deploy.yml'
+      # 过渡期三条：v0.2-B 之后会提交一次「删除根目录三件套」，
+      # 那次提交只碰根目录，不写进来的话不会触发重新部署。
+      - 'index.html'
+      - 'script.js'
+      - 'style.css'
+  workflow_dispatch:
+
+# deploy-pages 需要 id-token 来拿 OIDC token，pages: write 才能写 Pages 站点。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一个 group 只允许一个部署在跑；但不要 cancel-in-progress：
+# 部署中途被打断可能让线上停在半成品状态。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      # working-directory 只对这一步生效，所以 npm ci 和 npm run build 写在同一个 run 里。
+      - name: Install and build
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      # 传 web/dist，不是 web/。别改成 web/，否则 Pages 上是一堆源码。
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
