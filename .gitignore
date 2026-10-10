@@ -1,0 +1,34 @@
+# ---------- 依赖 ----------
+node_modules/
+
+# ---------- 构建产物 ----------
+# 由 npm run build 生成，不入库：部署时现构建（CI 会跑）
+dist/
+
+# ---------- 密钥与环境变量（ADR-010：密钥永不进仓库）----------
+# .env.example 是模板，必须入库；真实的 .env 只放本地和部署平台
+.env
+.env.*
+!.env.example
+
+# ---------- Python（v0.5 起用得上，先占位）----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------- 编辑器与系统 ----------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ---------- 日志与缓存 ----------
+*.log
+npm-debug.log*
+.vite/
+coverage/

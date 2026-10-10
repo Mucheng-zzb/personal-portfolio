@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <!-- 让手机浏览器按设备宽度渲染，这是响应式的前提 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>周同学 · 个人主页</title>
+  <!-- 搜索引擎结果里显示的一句话介绍 -->
+  <meta name="description" content="周同学的个人主页 —— 大一在读，在学后端与 AI，记录学习过程和做过的项目。" />
+
+  <!-- 网页图标（emoji 版本） -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>" />
+
+  <!-- 相对路径：./ 表示"和本文件同一个目录"。
+       注意 style.css 和 ./style.css 在浏览器里解析结果完全相同，写 ./ 只是意图更明确 -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+
+  <!-- ===== 背景装饰层（纯装饰，aria-hidden 让读屏软件忽略） ===== -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow--1"></div>
+    <div class="bg-glow bg-glow--2"></div>
+  </div>
+
+  <!-- ===== 顶部导航栏（滚动时吸顶） ===== -->
+  <header class="header">
+    <div class="container header__inner">
+      <a class="logo" href="#hero">周<span>同学</span></a>
+
+      <nav class="nav" aria-label="主导航">
+        <a class="nav__link" href="#about">关于</a>
+        <a class="nav__link" href="#skills">技能</a>
+        <a class="nav__link" href="#projects">项目</a>
+        <a class="nav__link" href="#now">近况</a>
+        <a class="nav__link" href="#contact">联系</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ 1. Hero 首屏 ============ -->
+    <section class="hero" id="hero">
+      <div class="container hero__inner reveal">
+
+        <p class="hero__eyebrow">你好，我是</p>
+
+        <h1 class="hero__title">周同学</h1>
+
+        <p class="hero__sub">
+          大一在读，在学后端与 AI，想做出自己的第一个作品。
+        </p>
+
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#contact">联系我</a>
+          <a class="btn btn--ghost" href="https://github.com/Mucheng-zzb" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+        </div>
+
+        <ul class="hero__chips">
+          <li class="chip"><i class="dot"></i>后端开发</li>
+          <li class="chip"><i class="dot"></i>AI · 数据</li>
+          <li class="chip"><i class="dot"></i>持续学习中</li>
+        </ul>
+
+      </div>
+
+      <!-- 首屏底部的「向下滚动」提示，点击会平滑滚到关于板块 -->
+      <a class="scroll-hint" href="#about">
+        <span>向下滚动</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 5v14M5 12l7 7 7-7" />
+        </svg>
+      </a>
+    </section>
+
+    <!-- ============ 2. About 关于 ============ -->
+    <section class="section reveal" id="about">
+      <div class="container">
+        <p class="section__eyebrow">01 / About</p>
+        <h2 class="section__title">关于我</h2>
+
+        <div class="about">
+          <div class="about__text">
+            <p>
+              我是周同学，目前大一在读，正在探索后端开发和 AI 领域。
+              这个网站是我的第一个项目 —— 完全手写，没有使用任何框架，
+              从写下第一行 HTML 到最终部署上线，我独立走完了整个流程。
+            </p>
+            <p>
+              我对「数据从哪来、怎么存、如何获取」的底层逻辑充满好奇，
+              也热衷于将繁杂的数据整理成直观易懂的信息。
+              目前我正在稳扎稳打地打基础：Python 语法、SQL、HTTP 原理，一样一样来。
+              在这个网站上，我会持续记录我的学习历程与踩过的坑。
+            </p>
+          </div>
+
+          <aside class="about__card card">
+            <h3 class="card__title">正在学什么</h3>
+            <ul class="check-list">
+              <li>Python 编程基础与常用库</li>
+              <li>SQL 与数据库设计入门</li>
+              <li>HTTP / REST API 是怎么工作的</li>
+              <li>机器学习基础概念（PyTorch 起步）</li>
+            </ul>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3. Skills 技能 ============ -->
+    <section class="section reveal" id="skills">
+      <div class="container">
+        <p class="section__eyebrow">02 / Skills</p>
+        <h2 class="section__title">技能</h2>
+        <p class="section__lead">
+          不盲目堆砌名词，以下是我真正理解并能够投入使用的工具与技术栈。
+        </p>
+
+        <div class="skills">
+          <div class="card skill-card">
+            <h3 class="card__title">后端开发</h3>
+            <ul class="tags">
+              <li class="tag">Python</li>
+              <li class="tag">C语言</li>
+              <li class="tag">Node.js</li>
+              <li class="tag">SQL</li>
+              <li class="tag">Git</li>
+            </ul>
+          </div>
+
+          <div class="card skill-card">
+            <h3 class="card__title">AI · 数据(学习中)</h3>
+            <ul class="tags">
+              <li class="tag">Pandas</li>
+              <li class="tag">NumPy</li>
+              <li class="tag">数据清洗</li>
+              <li class="tag">Matplotlib</li>
+              <li class="tag">scikit-learn</li>
+            </ul>
+          </div>
+
+          <div class="card skill-card">
+            <h3 class="card__title">工具与基础</h3>
+            <ul class="tags">
+              <li class="tag">HTML / CSS</li>
+              <li class="tag">Linux 命令行</li>
+              <li class="tag">VS Code</li>
+              <li class="tag">Markdown</li>
+              <li class="tag">英语文档阅读</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4. Projects 项目 ============ -->
+    <section class="section reveal" id="projects">
+      <div class="container">
+        <p class="section__eyebrow">03 / Projects</p>
+        <h2 class="section__title">项目</h2>
+        <p class="section__lead">目前作品还不多，先把已经做完的放上来，其他的慢慢填。</p>
+
+        <div class="projects">
+
+          <!-- ---- 已完成：个人主页 v1（featured 会占满一整行） ---- -->
+          <article class="card project project--featured">
+            <div class="project__head">
+              <h3 class="project__title">个人作品集 v0.1</h3>
+              <span class="badge badge--done">已完成</span>
+            </div>
+
+            <p class="project__desc">
+              就是你现在正在看的这个页面。用纯 HTML + CSS + JavaScript 手写，
+              没有框架、没有依赖，手机和电脑都能正常显示，已部署到 GitHub Pages。
+              做它的目的是把「结构 / 样式 / 交互」这三件事从头到尾走一遍。
+            </p>
+
+            <ul class="tags">
+              <li class="tag">HTML</li>
+              <li class="tag">CSS</li>
+              <li class="tag">JavaScript</li>
+              <li class="tag">响应式布局</li>
+              <li class="tag">GitHub Pages</li>
+            </ul>
+
+            <div class="project__links">
+              <a class="link" href="https://github.com/Mucheng-zzb/personal-portfolio" target="_blank" rel="noopener noreferrer">查看仓库 →</a>
+              <a class="link" href="https://mucheng-zzb.github.io/personal-portfolio/" target="_blank" rel="noopener noreferrer">在线版本 ↗</a>
+              <a class="link" href="#hero">回到顶部 ↑</a>
+            </div>
+          </article>
+
+          <!-- ---- 建设中占位卡片 ---- -->
+          <article class="card project project--wip">
+            <div class="project__head">
+              <h3 class="project__title">学习笔记仓库</h3>
+              <span class="badge">建设中</span>
+            </div>
+            <p class="project__desc">
+              打算把后端和数据库学习过程中的笔记、代码片段整理成一个仓库，方便自己回头查。
+            </p>
+            <ul class="tags">
+              <li class="tag">Markdown</li>
+              <li class="tag">Git</li>
+            </ul>
+            <p class="project__wip">施工中，敬请期待 🚧</p>
+          </article>
+
+          <article class="card project project--wip">
+            <div class="project__head">
+              <h3 class="project__title">数据小工具</h3>
+              <span class="badge">建设中</span>
+            </div>
+            <p class="project__desc">
+              一个用 Python 写的小脚本，把 CSV 里的数据快速清洗、统计并画成图。等学完 Pandas 就动手。
+            </p>
+            <ul class="tags">
+              <li class="tag">Python</li>
+              <li class="tag">Pandas</li>
+            </ul>
+            <p class="project__wip">施工中，敬请期待 🚧</p>
+          </article>
+
+          <article class="card project project--wip">
+            <div class="project__head">
+              <h3 class="project__title">第一个 API 服务</h3>
+              <span class="badge">建设中</span>
+            </div>
+            <p class="project__desc">
+              目标是用后端框架搭一个带增删改查的小接口，接上数据库，再写文档。目前还在学 HTTP 基础。
+            </p>
+            <ul class="tags">
+              <li class="tag">Node.js</li>
+              <li class="tag">REST API</li>
+            </ul>
+            <p class="project__wip">施工中，敬请期待 🚧</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5. Now 近况 ============ -->
+    <section class="section reveal" id="now">
+      <div class="container">
+        <p class="section__eyebrow">04 / Now</p>
+        <h2 class="section__title">最近在做什么</h2>
+        <p class="section__lead">
+          这一块建议每隔一两个月更新一次，让人知道你还在往前走。
+        </p>
+
+        <ul class="now-list">
+          <li class="now-item card">
+            <i class="pulse"></i>
+            <div>
+              <p class="now-item__text">在学 Python 基础语法和文件读写，每天写一点小练习。</p>
+              <p class="now-item__meta">更新于 2026.9</p>
+            </div>
+          </li>
+          <li class="now-item card">
+            <i class="pulse"></i>
+            <div>
+              <p class="now-item__text">刚把 SQL 的增删改查过了一遍，下一步学多表连接。</p>
+              <p class="now-item__meta">更新于 2026.9</p>
+            </div>
+          </li>
+          <li class="now-item card">
+            <i class="pulse"></i>
+            <div>
+              <p class="now-item__text">在做：这个个人主页 —— v0.1 已经上线，正在想下一步加什么。</p>
+              <p class="now-item__meta">更新于 2026.10</p>
+            </div>
+          </li>
+          <li class="now-item card">
+            <i class="pulse pulse--todo"></i>
+            <div>
+              <p class="now-item__text">准备做：把学的机器学习概念整理成一篇能看懂的小文章。</p>
+              <p class="now-item__meta">计划中</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ 6. Contact 联系 ============ -->
+    <section class="section section--contact reveal" id="contact">
+      <div class="container">
+        <p class="section__eyebrow">05 / Contact</p>
+        <h2 class="section__title">联系我</h2>
+        <p class="section__lead">
+          想交流、想一起学、或者只是打个招呼，都欢迎。
+        </p>
+
+        <div class="contact">
+
+          <!-- 邮箱卡片 -->
+          <div class="card contact-card">
+            <h3 class="card__title">邮箱</h3>
+            <a class="contact-card__value" href="mailto:254180649@qq.com">254180649@qq.com</a>
+            <button class="btn btn--small btn--ghost" id="copyEmailBtn" type="button" data-email="254180649@qq.com">
+              复制邮箱
+            </button>
+          </div>
+
+          <!-- GitHub 卡片 -->
+          <div class="card contact-card">
+            <h3 class="card__title">GitHub</h3>
+            <a class="contact-card__value" href="https://github.com/Mucheng-zzb" target="_blank" rel="noopener noreferrer">
+              github.com/Mucheng-zzb
+            </a>
+            <p class="contact-card__hint">代码和练习都会放在这里</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== 页脚 ===== -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>© <span id="year">2026</span> 周同学 · 用 HTML / CSS / JavaScript 手写</p>
+      <a class="footer__top" href="#hero">回到顶部 ↑</a>
+    </div>
+  </footer>
+
+  <!-- type="module"：模块脚本天生就是延迟执行的（等价于原来的 defer），
+       所以脚本执行时页面上的元素一定已经存在。
+       Vite 把这一行当作构建入口，打完包会把 src 换成带哈希的文件名。 -->
+  <script type="module" src="./script.js"></script>
+</body>
+</html>

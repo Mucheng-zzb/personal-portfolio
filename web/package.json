@@ -1,0 +1,16 @@
+{
+  "name": "personal-portfolio-web",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "个人作品集前端：原生 JS + Vite 构建，产物为纯静态文件，部署到 GitHub Pages",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  }
+}
