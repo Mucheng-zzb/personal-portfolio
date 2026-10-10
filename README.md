@@ -150,23 +150,9 @@ npm run dev     # 启动开发服务器
 
 ## 部署到 GitHub Pages
 
-> **v0.2-B（当前）**：线上由 GitHub Actions 部署 —— push 到 `main` 后，`.github/workflows/web-deploy.yml`
-> 会构建 `web/` 并把 `web/dist` 发布到 Pages，线上 URL 不变：
-> <https://mucheng-zzb.github.io/personal-portfolio/>
->
-> **一次性人工步骤（只能你自己点，Claude Code 没有你的 GitHub 权限）**：
-> 仓库 `Settings → Pages → Source` 选择 **GitHub Actions**（不要选 “Deploy from a branch”）。
-> 切换之后、第一次成功部署之前，线上会短暂显示「正在构建 / 404」，这是预期现象。
->
-> **回滚**（Actions 模式下前端怎么退回去）：
-> 1. 最省事的退法：`Actions → Deploy web to GitHub Pages → Run workflow`，把 `Use workflow from`
->    选成旧的 tag（例如 `v0.2-A`）再跑一次 —— 适合「发布之后才发现问题」的情况。
-> 2. 或者 `git revert` 掉出问题的那次提交，push 后会自动重新部署。
-> 3. **注意**：一旦根目录 `index.html` / `script.js` / `style.css` 被删除（v0.2-B 硬门禁），
->    「把 Source 切回 Deploy from a branch」这条退路就失效了；要恢复得先把三件套从旧 tag 取回来：
->    `git checkout v0.2-B -- index.html script.js style.css`。
->
-> 下面几节保留了 v0.1 时代「从零建仓库」的过程说明，仅作回顾，**当前不要照着改任何 Pages 设置**。
+> ⚠️ **这一节记录的是 v0.1 的部署方式（从 main 分支根目录部署），目前仍然生效。**
+> v0.2-B 会改成 GitHub Actions 构建 `web/dist` 后自动发布，届时这一节会重写。
+> 在那之前，**请不要在仓库 Settings → Pages 里改任何设置**，否则线上会挂。
 
 免费，不用买服务器。做完之后你会得到一个公网地址，别人点开就能看到你的主页。
 
@@ -226,18 +212,16 @@ https://你的用户名.github.io/personal-portfolio/
 > 地址就会变成 `https://zhangsan.github.io/` —— 更短更好看，效果完全一样。
 > 想改成这样，就去建一个叫这个名字的新仓库，把文件传过去，再开启 Pages。
 
-### 以后改了内容怎么更新（v0.2-B 起）
+### 以后改了内容怎么更新
 
-push 到 `main` 就会自动部署，大约 1～3 分钟生效：
+- **网页上传**：进仓库 → 点开要改的文件 → 右上角铅笔图标 ✏️ → 改完点 **Commit changes**，等 1 分钟就生效
+- **命令行**：改完文件后执行三条命令
 
 ```bash
 git add .
-git commit -m "docs: 更新自我介绍"
+git commit -m "更新：改了自我介绍"
 git push
 ```
-
-> 现在**只有 `web/` 的改动会触发部署**（过渡期内，改动根目录三件套也会触发）。
-> 只改 `docs/` 或 `README.md` 不会重新部署 —— 这是有意的，省 CI 时间。
 
 ---
 
