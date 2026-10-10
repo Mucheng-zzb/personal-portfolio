@@ -12,7 +12,9 @@
   <!-- 网页图标（emoji 版本） -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>" />
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- 相对路径：./ 表示"和本文件同一个目录"。
+       注意 style.css 和 ./style.css 在浏览器里解析结果完全相同，写 ./ 只是意图更明确 -->
+  <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
@@ -125,6 +127,7 @@
             <h3 class="card__title">后端开发</h3>
             <ul class="tags">
               <li class="tag">Python</li>
+              <li class="tag">C语言</li>
               <li class="tag">Node.js</li>
               <li class="tag">SQL</li>
               <li class="tag">Git</li>
@@ -168,7 +171,7 @@
           <!-- ---- 已完成：个人主页 v1（featured 会占满一整行） ---- -->
           <article class="card project project--featured">
             <div class="project__head">
-              <h3 class="project__title">个人主页 v1</h3>
+              <h3 class="project__title">个人作品集 v0.1</h3>
               <span class="badge badge--done">已完成</span>
             </div>
 
@@ -187,7 +190,8 @@
             </ul>
 
             <div class="project__links">
-              <a class="link" href="https://github.com/Mucheng-zzb" target="_blank" rel="noopener noreferrer">查看仓库 →</a>
+              <a class="link" href="https://github.com/Mucheng-zzb/personal-portfolio" target="_blank" rel="noopener noreferrer">查看仓库 →</a>
+              <a class="link" href="https://mucheng-zzb.github.io/personal-portfolio/" target="_blank" rel="noopener noreferrer">在线版本 ↗</a>
               <a class="link" href="#hero">回到顶部 ↑</a>
             </div>
           </article>
@@ -269,7 +273,7 @@
           <li class="now-item card">
             <i class="pulse"></i>
             <div>
-              <p class="now-item__text">在做：这个个人主页 —— v1 已经上线，正在想下一步加什么。</p>
+              <p class="now-item__text">在做：这个个人主页 —— v0.1 已经上线，正在想下一步加什么。</p>
               <p class="now-item__meta">更新于 2026.10</p>
             </div>
           </li>
@@ -328,6 +332,6 @@
   </footer>
 
   <!-- defer：等 HTML 解析完再执行，所以要操作的元素一定存在 -->
-  <script src="script.js" defer></script>
+  <script src="./script.js" defer></script>
 </body>
 </html>

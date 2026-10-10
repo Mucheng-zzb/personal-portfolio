@@ -1,6 +1,6 @@
-# 个人主页 v1
+# 个人作品集 v0.1
 
-我的第一个项目：一个单页响应式的个人主页。
+我的第一个项目：一个单页响应式的个人主页。线上地址：<https://mucheng-zzb.github.io/personal-portfolio/>
 
 **技术栈**：纯 HTML + CSS + JavaScript。没有框架、没有依赖、不需要构建工具 —— 双击 `index.html` 就能看到效果。
 
@@ -126,7 +126,7 @@ personal-portfolio/
 ```bash
 git init
 git add .
-git commit -m "feat: 个人主页 v1"
+git commit -m "feat: 个人作品集 v0.1"
 git branch -M main
 # ↓ 把 yourname 换成你的 GitHub 用户名
 git remote add origin https://github.com/yourname/personal-portfolio.git
@@ -169,7 +169,7 @@ git push
 
 ## 下一步可以加什么
 
-v1 已经能用了，下面是往后可以一个一个加的东西，**按从易到难排的**：
+v0.1 已经能用了，下面是往后可以一个一个加的东西，**按从易到难排的**：
 
 ### 很快就能加（改几行代码）
 
