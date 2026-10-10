@@ -77,11 +77,9 @@ export function contentPlugin() {
     const { data, errors } = validateContent(files);
 
     // 记录本轮涉及的文件，方便 dev 模式下补进监听
-    watched = new Set([
-      files.profile?.path,
-      files.now?.path,
-      ...files.projects.map((f) => f.path),
-    ].filter(Boolean));
+    watched = new Set(
+      [files.profile?.path, files.now?.path, ...files.projects.map((f) => f.path)].filter(Boolean),
+    );
 
     state = { data, errors };
     return state;
@@ -132,8 +130,7 @@ export function contentPlugin() {
   }
 
   const isContentFile = (file) =>
-    path.resolve(file).startsWith(contentDir() + path.sep) ||
-    path.resolve(file) === contentDir();
+    path.resolve(file).startsWith(contentDir() + path.sep) || path.resolve(file) === contentDir();
 
   return {
     name: PLUGIN_NAME,

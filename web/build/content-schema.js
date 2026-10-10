@@ -171,7 +171,10 @@ export function parseFrontMatter(text) {
   const lines = rest.split('\n');
   let endIndex = -1;
   for (let i = 0; i < lines.length; i += 1) {
-    if (lines[i].trim() === '---') { endIndex = i; break; }
+    if (lines[i].trim() === '---') {
+      endIndex = i;
+      break;
+    }
   }
   if (endIndex === -1) {
     return { data: null, error: '找不到结束的 ---（front-matter 没有闭合）' };
@@ -297,7 +300,8 @@ function validateProfile(root, relPath) {
   if (Array.isArray(root.learning) && root.learning.length === 0) {
     const i = entry.messages.findIndex((m) => m.startsWith('learning:'));
     const msg = 'learning: 期望非空字符串数组；暂时没有在学的内容请删除该字段';
-    if (i === -1) entry.messages.push(msg); else entry.messages[i] = msg;
+    if (i === -1) entry.messages.push(msg);
+    else entry.messages[i] = msg;
   }
 
   // skills: [{ title, items[] }]
@@ -388,7 +392,7 @@ function validateMarkdownFile(collection, file, parsed) {
 
   if (!KEBAB_RE.test(slug)) {
     entry.messages.push(
-      `文件名: 必须是 kebab-case（小写字母、数字、连字符），实际是「${filename}」`
+      `文件名: 必须是 kebab-case（小写字母、数字、连字符），实际是「${filename}」`,
     );
   }
 
@@ -520,9 +524,7 @@ function formatJsonError(err, src) {
 export function formatContentErrors(errors) {
   const head = `[content] 内容校验失败，共 ${errors.length} 处问题：`;
   const body = errors
-    .map((entry) =>
-      [`  ✗ ${entry.path}`, ...entry.messages.map((m) => `      · ${m}`)].join('\n')
-    )
+    .map((entry) => [`  ✗ ${entry.path}`, ...entry.messages.map((m) => `      · ${m}`)].join('\n'))
     .join('\n');
   const tail = `构建已中止：npm run build 退出码非 0。修好上面 ${errors.length} 处后重新构建。`;
   return `${head}\n${body}\n${tail}`;

@@ -11,6 +11,6 @@ export function renderHeroChips(chips) {
 
   render(
     container,
-    (chips || []).map((text) => el('li', { class: 'chip' }, [el('i', { class: 'dot' }), text]))
+    (chips || []).map((text) => el('li', { class: 'chip' }, [el('i', { class: 'dot' }), text])),
   );
 }

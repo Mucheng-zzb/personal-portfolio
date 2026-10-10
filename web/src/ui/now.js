@@ -36,6 +36,6 @@ export function renderNow(items) {
           el('p', { class: 'now-item__meta', text: metaText(item) }),
         ]),
       ]);
-    })
+    }),
   );
 }

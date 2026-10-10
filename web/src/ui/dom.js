@@ -38,5 +38,9 @@ export function render(container, nodes) {
 
 /** 生成一串 <li class="tag">文字</li> */
 export function tagList(items, { as = 'ul', itemClass = 'tag' } = {}) {
-  return el(as, { class: 'tags' }, items.map((text) => el('li', { class: itemClass, text })));
+  return el(
+    as,
+    { class: 'tags' },
+    items.map((text) => el('li', { class: itemClass, text })),
+  );
 }

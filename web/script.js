@@ -26,7 +26,6 @@ import { renderSkills } from './src/ui/skills.js';
 import { renderProjects } from './src/ui/projects.js';
 import { renderNow } from './src/ui/now.js';
 
-
 /* ============================================================
    0. 标记「JS 可用」
    在 <html> 上加一个 .js 类。style.css 里的进场动画写成
@@ -34,7 +33,6 @@ import { renderNow } from './src/ui/now.js';
    先藏起来。万一 JS 报错或用户禁用 JS，内容依然正常显示 —— 不会白屏。
    ============================================================ */
 document.documentElement.classList.add('js');
-
 
 /* ============================================================
    0.5 内容渲染
@@ -53,9 +51,6 @@ function renderContent() {
   renderProjects(projects);
   renderNow(now);
 }
-
-
-
 
 /* ============================================================
    1. 滚动淡入
@@ -87,12 +82,11 @@ function initReveal() {
       threshold: 0.12,
       // 底部提前 60px 触发，滚到底时不会"慢半拍"
       rootMargin: '0px 0px -60px 0px',
-    }
+    },
   );
 
   items.forEach((el) => observer.observe(el));
 }
-
 
 /* ============================================================
    2. 高亮当前板块对应的导航项
@@ -110,8 +104,9 @@ function initActiveNav() {
     if (id) linkById.set(id, link);
   });
 
-  const sections = Array.from(document.querySelectorAll('section[id]'))
-    .filter((section) => linkById.has(section.id));
+  const sections = Array.from(document.querySelectorAll('section[id]')).filter((section) =>
+    linkById.has(section.id),
+  );
 
   if (!sections.length || !('IntersectionObserver' in window)) return;
 
@@ -139,7 +134,7 @@ function initActiveNav() {
       // 上边留出导航栏高度，下边留 55%：形成一条位于屏幕上部的"激活带"
       rootMargin: '-72px 0px -55% 0px',
       threshold: 0,
-    }
+    },
   );
 
   sections.forEach((section) => observer.observe(section));
@@ -149,14 +144,12 @@ function initActiveNav() {
   window.addEventListener(
     'scroll',
     () => {
-      const atBottom =
-        window.innerHeight + window.scrollY >= document.body.offsetHeight - 4;
+      const atBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 4;
       if (atBottom) setActive(sections[sections.length - 1].id);
     },
-    { passive: true } // passive：告诉浏览器这个监听器不会阻止滚动，滚动更流畅
+    { passive: true }, // passive：告诉浏览器这个监听器不会阻止滚动，滚动更流畅
   );
 }
-
 
 /* ============================================================
    3. 页脚年份自动更新
@@ -166,7 +159,6 @@ function initYear() {
   const el = document.getElementById('year');
   if (el) el.textContent = String(new Date().getFullYear());
 }
-
 
 /* ============================================================
    4. 复制邮箱
@@ -232,7 +224,6 @@ function initCopyEmail() {
   });
 }
 
-
 /* ============================================================
    5. 平滑滚动兜底
    主方案是 CSS 的 `html { scroll-behavior: smooth }`。
@@ -240,8 +231,7 @@ function initCopyEmail() {
    先判断支持性，支持就不插手，避免两套逻辑打架。
    ============================================================ */
 function initSmoothScrollFallback() {
-  const supportsCssSmooth =
-    'scrollBehavior' in document.documentElement.style;
+  const supportsCssSmooth = 'scrollBehavior' in document.documentElement.style;
   if (supportsCssSmooth) return;
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
@@ -253,16 +243,13 @@ function initSmoothScrollFallback() {
       event.preventDefault();
 
       // 减去吸顶导航的高度，否则标题会被导航条盖住
-      const headerHeight =
-        document.querySelector('.header')?.offsetHeight ?? 0;
-      const top =
-        target.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+      const headerHeight = document.querySelector('.header')?.offsetHeight ?? 0;
+      const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
 
       window.scrollTo({ top, behavior: 'smooth' });
     });
   });
 }
-
 
 /* ============================================================
    启动

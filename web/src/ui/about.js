@@ -14,11 +14,17 @@ export function renderAbout(profile) {
 
   const textBox = document.getElementById('aboutText');
   if (textBox) {
-    render(textBox, (profile.about || []).map((paragraph) => el('p', { text: paragraph })));
+    render(
+      textBox,
+      (profile.about || []).map((paragraph) => el('p', { text: paragraph })),
+    );
   }
 
   const list = document.getElementById('learningList');
   if (list) {
-    render(list, (profile.learning || []).map((text) => el('li', { text })));
+    render(
+      list,
+      (profile.learning || []).map((text) => el('li', { text })),
+    );
   }
 }

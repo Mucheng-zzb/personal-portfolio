@@ -15,7 +15,7 @@ export function renderSkills(profile) {
       el('div', { class: 'card skill-card' }, [
         el('h3', { class: 'card__title', text: group.title }),
         tagList(group.items),
-      ])
-    )
+      ]),
+    ),
   );
 }
