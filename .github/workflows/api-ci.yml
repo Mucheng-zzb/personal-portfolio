@@ -120,7 +120,9 @@ jobs:
           cd ..
           node api/tests/contract/make_fixture.mjs > /tmp/fixture_now.json
           if ! diff -u api/tests/contract/fixture_js.json /tmp/fixture_now.json; then
-            echo "::error::fixture_js.json 与 web/content 不同步。在仓库根跑：node api/tests/contract/make_fixture.mjs > api/tests/contract/fixture_js.json"
+            # 给人看的这句必须是那条唯一指定做法 —— 上面第 121 行的 `>` 是脚本内部
+            # 写临时文件做比对（Linux/bash，写 /tmp），不要照抄到本机。
+            echo "::error::fixture_js.json 与 web/content 不同步。在仓库根跑：node api/tests/contract/regen_fixture.mjs"
             exit 1
           fi
           echo "fixture 与内容同步 ✓"
