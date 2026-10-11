@@ -6,7 +6,7 @@
 > 用途：产品架构师（只写 `.md`，不写代码）把「当前要交给 Claude Code 的活」「已定决策」「核验记录」
 > 集中在一处，避免每次靠聊天记录交接。
 >
-> 最后更新：2026-10-11（v0.2 全部完成并打了 v0.2.0；v0.3-A 已推送并通过线上逐字节核验；下一步 v0.3-B）
+> 最后更新：2026-10-11（**v0.3 全部完成并打 tag `v0.3.0`**；下一步 **B1 → v0.4**，顺序由用户确定）
 
 ---
 
@@ -19,8 +19,9 @@
 | v0.2-C | ✅ 完成（`39a83df` / `7bf50f8` / `bbcb0b9` / `8a3925c`，已推送） | run #4 success（30 秒）；线上与本地 `web/dist` 逐字节相同（sha256 `0b366317…`）；体积 JS 1.41→4.64 KB gzip |
 | A 块（v0.2-B 遗留） | ✅ 完成（`ee90d6c` / `be9a6a2` / `363c643`） | ADR-011 改为 tag 留档；CLAUDE.md 已入库；docs/ 不在 paths 白名单，未触发部署，线上未受影响 |
 | v0.2-D | ✅ 完成（`9e3c10f` / `042ce4e` `style:` / `d8f3781` / `1b20150` / `e0f4fc8`，已推送） | 见 §4；tag `v0.2.0` 已打并推送；Lighthouse 100/95/100/100 写进 BASELINE |
-| v0.3-A 笔记子系统 | ✅ 完成并已推送（`fb9d97b`；run `38114432920` success，31 秒） | 架构师复核：**线上 5/5 文件与本地 dist 逐字节一致**（HTML/JS/CSS/sitemap/robots）；notes 集合 draft 构建期排除；体积 JS 46.06 KB gzip（首屏 54.16 KB） |
-| v0.3-B → v1.0 | ⬜ 未开始 | 指令块已备齐（见 §2） |
+| v0.3-A 笔记子系统 | ✅ **验收全部关闭**（`fb9d97b`；run `38114432920` success，31 秒） | 架构师复核：线上 5/5 文件与本地 dist 逐字节一致；notes 集合 draft 构建期排除；体积首屏 54.16 KB gzip。**用户手工点检导航锚点：通过（2026-10-11）** |
+| v0.3-B 与 `v0.3.0` | ✅ 完成（`721dcdb` ARCHITECTURE §13 渲染策略 / `626e4ae` PLAYBOOK §5.2-B；tag `v0.3.0` → 626e4ae 已推送） | docs-only 两个提交；按 paths 白名单**不触发部署**（线上仍 200，属预期，不是失败） |
+| v0.4 → v1.0 | ⬜ 未开始 | 用户决定的顺序：**先 B1（内容轨），再 v0.4（门面）** |
 
 ---
 
@@ -51,14 +52,25 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 正当地点了这个已废弃路径的名字。**字面 0 命中不是好判据**，应写成语义判据：
 「没有一处把 `v2.1-A` 当作在用的工作区」。
 
-### 1.3 下一步：v0.3-B（很小，三个提交以内）
+### 1.3 v0.3-B —— ✅ 已完成（`721dcdb` / `626e4ae`，tag `v0.3.0`）
 
 1. notes 的日期格式校验（故意写错日期 → 构建失败并指出文件 + 字段）；
 2. ARCHITECTURE 补「渲染策略与升级触发器」一节（客户端渲染 + 构建期内联；笔记 > 30 篇转预渲染）；
 3. 改写 PLAYBOOK §5.2-B：**去掉** `web/snapshot/content.json` 与 `export_content.py`（D5，推迟到 v0.5-A），
    验收条改为「日期格式错误会导致构建失败」。
 
-做完 v0.3 结束 → 打 tag `v0.3.0` 并推送。**然后工程轨进入 v0.4（门面），内容轨必须同步启动 B1。**
+做完 v0.3 结束 → 打 tag `v0.3.0` 并推送。
+
+**之后的顺序（用户 2026-10-11 决定）**：先 **B1（数据小工具 CLI，内容轨）**，再做 **v0.4（门面）**。
+理由：工程轨已有约两周提前量，v0.4 拖到 10/26 开工仍在它自己的 W5（11/09–11/15）之前；
+而 B1 做完，v0.4 的项目卡筛选/排序/封面才有真实数据可用，顺序上更顺。
+**注意**：v0.4 里包含 BASELINE 记下的唯一失分项（页脚对比度 4.19 → 需 ≥4.5），修完整站 Lighthouse 即 100/100/100/100。
+
+### 1.4 剩一处文档不一致（已列为待办，交给 Claude Code）
+
+`docs/ARCHITECTURE.md` §3 的目标目录树仍有两行与 D5 矛盾：
+- 第 197 行 `web/snapshot/`（「由构建脚本生成的内置数据快照（降级用）」）—— 前端不需要运行时快照，应删除；
+- 第 210 行 `export_content.py` 的注释写着「→ 前端快照」，应改为「v0.5 定：把内容导出为后端可读结构（前端不再用它做快照）」。
 
 ---
 
@@ -88,7 +100,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 | D2 | 仓库根 CLAUDE.md（含本机环境注意） | ✅ 已落地 | `CLAUDE.md` |
 | D3 | 内容管线在构建期（校验 / draft 排除 / sitemap），前端不做运行时校验 | ✅ 已落地 | `web/build/*` |
 | D4 | 禁用 JS 只承诺 姓名/定位/邮箱/GitHub；项目卡由 JS 渲染 | ✅ 已落地 | ARCHITECTURE §4 |
-| D5 | 不做 `web/snapshot/`、不做 `export_content.py`（推迟到 v0.5-A） | ✅ 本期遵守，v0.3-B 复核 | ARCHITECTURE §3 / PLAYBOOK §5.2-B |
+| D5 | 不做 `web/snapshot/`、不做 `export_content.py`（推迟到 v0.5-A） | ✅ 本期遵守；PLAYBOOK §5.2-B 已改写；**ARCHITECTURE §3 目录树待同步（见 §1.4）** | PLAYBOOK §5.2-B（已改写）/ ARCHITECTURE §3（待同步） |
 | D6 | 代码高亮选 highlight.js（core + 手动注册语言），排除 shiki | ✅ 已落地（v0.3-A，5 种语言） | PLAYBOOK §5.2-A / 代码注释 |
 | D7 | CI 按路径过滤（web-ci / api-ci 各管各的） | ⏳ v0.8-A | PLAYBOOK §5.7 |
 | D8 | SSE 平台超时 → 降级为一次性返回 | ⏳ v0.7-A | ARCHITECTURE §8 |
@@ -122,6 +134,8 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 | 10-11 | **v0.2-D** | ✅ 通过 | tag `v0.2.0` 在远端；`style:` 是独立提交（10 文件纯格式化）；`npm run check` = prettier+eslint+vite build；BASELINE 四项 100/95/100/100 |
 | 10-11 | **v0.3-A（本地）** | ✅ 通过（待推送） | 架构师复核：`slugFromFilename` 已去目录前缀；CRLF 归一化已修；notes 集合带 `withBody` + draft 构建期排除；sitemap/robots 无 lastmod；**我自己重跑两次 build，5 个 dist 文件 sha256 逐字节一致**；dist bundle 含笔记标题 |
 | 10-11 | **v0.3-A 部署（推送后）** | ✅ 通过 | `fb9d97b` 已推送（`main == origin/main`）；run `38114432920` success 31 秒；线上 index.html / JS `index-DdMUI8O7.js`（130309 B）/ CSS `index-D55ilY8h.css`（13898 B）/ sitemap.xml / robots.txt **5/5 与本地 dist 逐字节一致**；线上 JS bundle 含 `#/notes`、`function-definition-vs-call`、marked、sanitize、highlight |
+| 10-11 | **v0.3-A 导航锚点人工点检** | ✅ 通过（**用户执行**，非机器验证） | 用户反馈：线上 `#/notes` 页面点导航「关于/技能/项目/近况/联系」均可正常滚动，无异常；无截图留档 |
+| 10-11 | **v0.3-B 与 v0.3.0** | ✅ 通过 | 架构师复验：`721dcdb` / `626e4ae` 两个 docs 提交；远端 tag `v0.3.0` → 626e4ae；ARCHITECTURE 558/560/573 行有「构建期预渲染 / 笔记 > 30 篇」触发器；全 PLAYBOOK 内 `web/snapshot`、`export_content` **0 命中**；`npm run check` exit 0；docs-only 推送不触发 run（预期）；线上 200 |
 
 ---
 
