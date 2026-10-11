@@ -2,7 +2,7 @@
 //
 // 两套环境要分开声明，否则会互相误报：
 //   - script.js 与 src/** 跑在浏览器里 → globals.browser（document / window / fetch …）
-//   - build/** 与 vite.config.js 跑在 Node 里 → globals.node（process / console …）
+//   - build/**、scripts/**（.mjs）、vite.config.js 跑在 Node 里 → globals.node（process / console …）
 // 不区分的话，浏览器代码会被报 "process is not defined"，反之亦然。
 //
 // 注意：src/lib/content.js 里 `import content from 'virtual:content'` 是构建期
@@ -27,7 +27,7 @@ export default [
   },
 
   {
-    files: ['build/**/*.js', 'vite.config.js', 'eslint.config.js'],
+    files: ['build/**/*.js', 'scripts/**/*.mjs', 'vite.config.js', 'eslint.config.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
