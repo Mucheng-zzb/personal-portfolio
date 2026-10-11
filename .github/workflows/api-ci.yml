@@ -1,0 +1,115 @@
+# 后端 CI（v0.5-B，D32）
+#
+# 为什么需要它：`web/` 有 web-deploy.yml 把关，`api/` 在这之前**一个 workflow 都没有** ——
+# 42 个测试只在开发者本机跑过。「本机能过」和「提交后一定过」是两件事，
+# 前者取决于谁记得跑。
+#
+# 触发路径里为什么有 `web/content/**`：
+#   契约测试比的是「Python 侧解析结果 == web/build/content-schema.js 侧解析结果」，
+#   而期望值固化在 api/tests/contract/fixture_js.json 里。**内容一变，fixture 就过期**，
+#   但那只跟 web/content 有关、跟 api/ 代码无关 —— 只盯 api/** 的话，
+#   「改了内容忘了重生成 fixture」这种最容易发生的情况反而不会触发检查。
+
+name: api CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+      - 'web/content/**'
+      - '.github/workflows/api-ci.yml'
+  pull_request:
+    paths:
+      - 'api/**'
+      - 'web/content/**'
+      - '.github/workflows/api-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # 所有命令都在 api/ 下跑：pytest.ini、requirements*.txt 都在那儿
+        working-directory: api
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          # 与 api/Dockerfile 的基础镜像保持一致。
+          # 本机开发用的是更新版本（3.14），但线上跑的是镜像里那个，
+          # CI 要对齐【线上】而不是对齐本机。
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: api/requirements*.txt
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: pytest
+        run: pytest -q
+
+      # ↓ 下面两步与 python 无关，但都守的是「后端不能悄悄坏掉」。
+      #   它们放在这里而不是新建一个 workflow：触发条件几乎完全重合，
+      #   分成两个 workflow 只会让「谁跑过了」更难看清。
+
+      - name: 契约 fixture 是否与 web/content 同步
+        working-directory: .
+        run: |
+          # 用 Node 真跑一次前端的校验器，跟仓库里提交的 fixture 比。
+          # 不一致 = 内容改了但忘了重生成 fixture —— 那意味着契约测试
+          # 正在拿一份过期的期望值做判断，比不跑还危险（会给出假的安全感）。
+          cd web && npm ci --silent
+          cd ..
+          node api/tests/contract/make_fixture.mjs > /tmp/fixture_now.json
+          if ! diff -u api/tests/contract/fixture_js.json /tmp/fixture_now.json; then
+            echo "::error::fixture_js.json 与 web/content 不同步。在仓库根跑：node api/tests/contract/make_fixture.mjs > api/tests/contract/fixture_js.json"
+            exit 1
+          fi
+          echo "fixture 与内容同步 ✓"
+
+      - name: 密钥形态扫描（语义判据，不是字面 grep）
+        working-directory: .
+        run: |
+          # 为什么不用 PLAYBOOK §6 那条 `git log -p | grep -iE 'api[_-]?key|secret|token'`：
+          # 它必然命中我们自己的正当文本（.env.example 的占位符、文档里「密钥」二字、
+          # 「Bearer token」措辞、所有含 key 子串的英文词）。要么误报失败，
+          # 要么逼人删掉正当文档 —— 比没有检查更糟。
+          #
+          # 这里换成语义判据：找**真实密钥的形状**，而不是找关键词。
+          set -euo pipefail
+
+          echo "① .env 是否曾入库（空 = 从未）"
+          if [ -n "$(git log --all --oneline -- .env)" ]; then
+            echo "::error::Git 历史里出现过 .env"
+            exit 1
+          fi
+          echo "   ✓ 无"
+
+          echo "② 被跟踪的 .env* 只允许 .env.example"
+          BAD=$(git ls-files | grep -E '(^|/)\.env' | grep -v '\.env\.example$' || true)
+          if [ -n "$BAD" ]; then
+            echo "::error::不该入库的 env 文件：$BAD"
+            exit 1
+          fi
+          echo "   ✓ 只有 $(git ls-files | grep -c '\.env\.example$') 个 .env.example"
+
+          echo "③ 已知密钥形状扫描（工作区 + 整部历史）"
+          PAT='sk-[A-Za-z0-9_-]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{20,}|AIza[0-9A-Za-z_-]{35}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|postgres(ql)?://[^ :]+:[^ @]+@'
+          HIT=$({ git grep -nIE "$PAT" -- . || true; git log --all -p --pretty=format: | grep -IE "$PAT" || true; })
+          if [ -n "$HIT" ]; then
+            echo "::error::疑似真实密钥命中，请逐条解释或删除："
+            echo "$HIT"
+            exit 1
+          fi
+          echo "   ✓ 0 命中"
