@@ -6,7 +6,7 @@
 > 用途：产品架构师（只写 `.md`，不写代码）把「当前要交给 Claude Code 的活」「已定决策」「核验记录」
 > 集中在一处，避免每次靠聊天记录交接。
 >
-> 最后更新：2026-10-11（**v0.4-A 实现完成并推送，待架构师核验**；`v0.4-A` 之后还有 v0.4-B 待定）
+> 最后更新：2026-10-11（**v0.4-A 已由架构师核验通过**，线上 7/7 文件逐字节一致；只剩两项人工验收：真机走查、resume.pdf 过目。下一步：收尾 → tag `v0.4.0` → v0.5）
 
 ---
 
@@ -21,8 +21,9 @@
 | v0.2-D | ✅ 完成（`9e3c10f` / `042ce4e` `style:` / `d8f3781` / `1b20150` / `e0f4fc8`，已推送） | 见 §4；tag `v0.2.0` 已打并推送；Lighthouse 100/95/100/100 写进 BASELINE |
 | v0.3-A 笔记子系统 | ✅ **验收全部关闭**（`fb9d97b`；run `38114432920` success，31 秒） | 架构师复核：线上 5/5 文件与本地 dist 逐字节一致；notes 集合 draft 构建期排除；体积首屏 54.16 KB gzip。**用户手工点检导航锚点：通过（2026-10-11）** |
 | v0.3-B 与 `v0.3.0` | ✅ 完成（`721dcdb` ARCHITECTURE §13 渲染策略 / `626e4ae` PLAYBOOK §5.2-B；tag `v0.3.0` → 626e4ae 已推送） | docs-only 两个提交；按 paths 白名单**不触发部署**（线上仍 200，属预期，不是失败） |
-| v0.4-A 门面达标 | 🟡 **已实现并推送**（`b3ff71c` … `13db499`；run `38121103823` success 34 秒） | 线上 7/7 文件与本地 `web/dist` 逐字节一致；Lighthouse 移动端**线上**复跑：浅色 98/100/100/100 与 100/100/100/100、暗色 100/100/100/100（BASELINE §1）。**待架构师核验与人工真机走查** |
-| v0.4-B 及之后 | ⬜ 未开始 | 真机走查（ROADMAP §5.4 要求）尚未做；B2/B3 内容轨未动 |
+| v0.4-A 门面达标 | 🟡 代码完成、**架构师已核验**（`b3ff71c` … `b997afd`；run `38121103823` success 34 秒） | 架构师实测线上 7/7 文件与本地 `web/dist` 逐字节一致（`index.html` `4ad87bf7`、JS `index-rhHOB_2q.js` 133.3KB、CSS `index-zHbQBzuy.css` 18.6KB、`resume.pdf`、`images/og.png`、sitemap、robots）；无 JS 降级四项仍在；Lighthouse 线上复跑 100/100/100/100（浅色首跑 98/性能系 Pages 网络抖动）。**只剩两项人工验收** |
+| v0.4 收尾 → `v0.4.0` | ⬜ 待人工验收 | PLAYBOOK 里只有 v0.4-A 一个块，**「v0.4-B」不是既定范围**；收尾只含：用户真机走查 + `resume.pdf` 内容过目（+ 可选项目封面图）。通过后打 tag `v0.4.0` |
+| v0.5 与 B2 | ⬜ 未开始 | 内容轨下一站 B2 = 第一个 REST API（FastAPI + SQLite），它同时就是站点 v0.5 的后端 |
 
 ---
 
@@ -140,6 +141,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 | 10-11 | **v0.3-A 部署（推送后）** | ✅ 通过 | `fb9d97b` 已推送（`main == origin/main`）；run `38114432920` success 31 秒；线上 index.html / JS `index-DdMUI8O7.js`（130309 B）/ CSS `index-D55ilY8h.css`（13898 B）/ sitemap.xml / robots.txt **5/5 与本地 dist 逐字节一致**；线上 JS bundle 含 `#/notes`、`function-definition-vs-call`、marked、sanitize、highlight |
 | 10-11 | **v0.3-A 导航锚点人工点检** | ✅ 通过（**用户执行**，非机器验证） | 用户反馈：线上 `#/notes` 页面点导航「关于/技能/项目/近况/联系」均可正常滚动，无异常；无截图留档 |
 | 10-11 | **v0.3-B 与 v0.3.0** | ✅ 通过 | 架构师复验：`721dcdb` / `626e4ae` 两个 docs 提交；远端 tag `v0.3.0` → 626e4ae；ARCHITECTURE 558/560/573 行有「构建期预渲染 / 笔记 > 30 篇」触发器；全 PLAYBOOK 内 `web/snapshot`、`export_content` **0 命中**；`npm run check` exit 0；docs-only 推送不触发 run（预期）；线上 200 |
+| 10-11 | **v0.4-A 部署（推送后）** | ✅ 通过（两项人工待做） | 架构师实测：线上 7/7 文件与本地 `web/dist` 逐字节一致（index.html `4ad87bf7`、JS `index-rhHOB_2q.js` 133.3KB、CSS `index-zHbQBzuy.css` 18.6KB、`resume.pdf` 145.2KB、`images/og.png` 177.3KB、sitemap、robots）；无 JS 降级四项仍在；线上 HTML 含 `#/projects`、`#/resume`、`og:title`、`og:image`；BASELINE 已有 v0.4-A 复跑表（100/100/100/100，TBT 80ms 如实记录） |
 
 ---
 
