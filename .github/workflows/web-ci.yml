@@ -1,0 +1,81 @@
+# 前端 CI（v0.5.x 加固，D43）
+#
+# 为什么需要它：`web/` 侧此前**一个检查都没有**。`web-deploy.yml` 只负责构建并发布，
+# 它不做代码检查、不量体积 —— 也就是说「代码质量」与「体积有没有涨」这两件事，
+# 在 CI 里完全没人管，全靠作者本机记得跑 `npm run check`。
+#
+# 更糟的是文档谎报过一道门禁：ROADMAP §8 与 ARCHITECTURE §10 都写着
+# 「PR 必须 lint + test + build 全绿才能合并」，而这道门禁**从未存在过**。
+# 这个 workflow 是把那句话变成事实 —— 或者把话改掉。两条都做了。
+#
+# 触发路径里为什么有 `web/content/**`：它其实已经被 `web/**` 覆盖了。
+# 单列出来是为了跟 api-ci.yml 对齐（那边 `web/content/**` 不在 `api/**` 里，必须单列），
+# 也为了让「改内容也会跑前端检查」这件事在文件里看得见。
+#
+# 关于 PR：**不设强制 PR 流程**（单人仓库）。`pull_request` 触发器留着是为了
+# 偶尔开分支验证时能看到结果，不是一道合并门禁。
+
+name: web CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'web/**'
+      - 'web/content/**'
+      - '.github/workflows/web-ci.yml'
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'web/content/**'
+      - '.github/workflows/web-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          # 与 web-deploy.yml 保持一致：CI 要对齐【线上跑的那个版本】，
+          # 不是对齐本机。
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: 安装依赖
+        working-directory: web
+        run: npm ci
+
+      - name: npm run check（Prettier + ESLint + 构建）
+        working-directory: web
+        run: npm run check
+
+      # `npm run check` 里已经含 `vite build`，这里为什么要再 build 一次：
+      #   ① 不把「量体积」这件事挂在前一个脚本的内部实现上 —— check 哪天不再构建，
+      #      体积这一步就会拿旧产物量出好看的假数字（比失败更危险）；
+      #   ② 87 毫秒，不值得为省它引入隐式依赖。
+      - name: 构建
+        working-directory: web
+        run: npm run build
+
+      # 体积门禁。阈值写在这一行里（而不是脚本内部）：预算出自
+      # docs/ARCHITECTURE.md §4，改预算应该是改调用方这一处。
+      # 硬线越线 → 脚本退出码 2 → 这一步失败 → job 失败。
+      # 预警线（D19 的 80 KB）只打 ::warning:: 注解，不阻断。
+      - name: 体积门禁（JS ≤ 150 KB / CSS ≤ 40 KB；JS > 80 KB 预警）
+        working-directory: .
+        run: |
+          node web/scripts/measure-size.mjs --pretty \
+            --max-js-kb 150 \
+            --max-css-kb 40 \
+            --warn-js-kb 80
