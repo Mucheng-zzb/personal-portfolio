@@ -150,9 +150,9 @@
 
 | 编号 | 时间 | 作品 | 产出物 | 对应站点 |
 | :--- | :--- | :--- | :--- | :--- |
-| **B1** | W1–W3 | 数据小工具 CLI | Python + Pandas：读 CSV → 清洗 → 统计 → 出图；README + 成果图 | 项目卡 1 |
-| **B2** | W4–W7 | 第一个 REST API | FastAPI + SQLite：CRUD + 校验 + 测试 + /docs | **直接成为站点 v0.5 的 API** |
-| **B3** | W8–W10 | AI 问答（RAG） | 把笔记/项目向量化，问答并给出引用 | **直接成为站点 v0.7 的 AI 功能** |
+| **B1** | 已完成（原 W1–W3） | 数据小工具 CLI | Python + Pandas：读 CSV → 清洗 → 统计 → 出图；README + 成果图 | 项目卡 1（repo: `Mucheng-zzb/data-toolkit`） |
+| **B2** | 已完成（原 W4–W7，实际 2026-10-11） | 第一个 REST API | FastAPI：**只读** API（7 个 GET 端点）+ 统一错误体 + X-Request-Id + 契约测试 + /docs + Docker 部署；**SQLite 与 CRUD 延到 v1.1**（v0.6 已砍，D51） | **直接成为站点 v0.5 的 API** |
+| **B3** | v0.7：11/09–12/06 | AI 问答（RAG） | 索引 + 嵌入 + 向量检索 + Prompt + 流式/非流式 | **直接成为站点 v0.7 的 AI 功能** |
 | **B4** | 可选 | 一个小模型实验 | scikit-learn 分类或 PyTorch 小 demo + 一篇笔记 | 项目卡 4 或笔记 |
 
 **这条设计的妙处**：B2、B3 不是「额外的作业」，而是站点必须做的功能。你不必在「做作品集」和「学后端」之间二选一。
