@@ -10,6 +10,10 @@
 //      同一份文件每次跑出来的字节数都可能不同，数字不可比。
 //   2) KB = 字节 / 1024（不是 1000）—— 与 BASELINE 表里的历史数字保持一致。
 //      ⚠️ Vite 构建日志里的 gzip 尺寸用的是 kB(1000)，所以两者数值不同、不可混用。
+//   2b) 压缩档位 = **6**（zlib 的默认档，Z_DEFAULT_COMPRESSION = -1 在 zlib 里就映射到 6）。
+//      显式传 `{ level: 6 }` 而不是靠默认值：默认值是"实现细节"，写出来的是"口径"。
+//      同一份输入 level 1 / 6 / 9 会差出几百字节（本机实测 8 245 / 7 638 / 7 612 B），
+//      档位不写死的话，数字就不可比。实测 level:6 与不传参数的输出**逐字节相同**。
 //   3) 「首屏」= dist/index.html 真正引用的那一个 JS + 一个 CSS，不是 assets/ 里所有文件。
 //      照目录扫的话，将来做了代码分割会把懒加载的 chunk 全算进来，虚报首屏。
 //
@@ -71,7 +75,8 @@ if (!existsSync(HTML_PATH)) {
 
 function measure(absPath) {
   const raw = readFileSync(absPath);
-  const gzipped = gzipSync(raw);
+  // level: 6 显式写出来，别删成 gzipSync(raw) —— 见文件头 2b 条。
+  const gzipped = gzipSync(raw, { level: 6 });
   return {
     file: relative(DIST_DIR, absPath).split('\\').join('/'),
     gzipBytes: gzipped.length,
