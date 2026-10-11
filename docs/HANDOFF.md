@@ -6,7 +6,7 @@
 > 用途：产品架构师（只写 `.md`，不写代码）把「当前要交给 Claude Code 的活」「已定决策」「核验记录」
 > 集中在一处，避免每次靠聊天记录交接。
 >
-> 最后更新：2026-10-11（v0.2-C 已推送并通过线上核验）
+> 最后更新：2026-10-11（v0.2 全部完成并打了 v0.2.0；v0.3-A 本地完成、待推送）
 
 ---
 
@@ -18,14 +18,18 @@
 | v0.2-B | ✅ 完成（run #2 / #3 success，硬门禁通过） | 线上已由 Actions 产物提供；实测 push → 上线约 30 秒 |
 | v0.2-C | ✅ 完成（`39a83df` / `7bf50f8` / `bbcb0b9` / `8a3925c`，已推送） | run #4 success（30 秒）；线上与本地 `web/dist` 逐字节相同（sha256 `0b366317…`）；体积 JS 1.41→4.64 KB gzip |
 | A 块（v0.2-B 遗留） | ✅ 完成（`ee90d6c` / `be9a6a2` / `363c643`） | ADR-011 改为 tag 留档；CLAUDE.md 已入库；docs/ 不在 paths 白名单，未触发部署，线上未受影响 |
-| v0.2-D | ⬜ 未开始 | 见 §2 队列 |
-| v0.3 → v1.0 | ⬜ 未开始 | 指令块已备齐（见 §2） |
+| v0.2-D | ✅ 完成（`9e3c10f` / `042ce4e` `style:` / `d8f3781` / `1b20150` / `e0f4fc8`，已推送） | 见 §4；tag `v0.2.0` 已打并推送；Lighthouse 100/95/100/100 写进 BASELINE |
+| v0.3-A 笔记子系统 | 🟡 本地完成、**待推送**（9 个提交，`main` ahead 9） | 架构师已复核：可复现（两次构建 sha256 一致）、notes 集合 + draft 构建期排除、sitemap/robots 无 lastmod、体积 54.16 KB gzip |
+| v0.3-B → v1.0 | ⬜ 未开始 | 指令块已备齐（见 §2） |
 
 ---
 
 ## 1. 现在要做的事
 
-### 1.1 v0.2-C —— ✅ 已完成（2026-10-11，架构师已核验）
+### 1.1 v0.2-B / C / D 与收尾 —— ✅ 全部完成（2026-10-11，架构师已核验）
+
+**v0.2-D**（`9e3c10f` Prettier 依赖 → `042ce4e` 纯格式化 → `d8f3781` check 换成 prettier+eslint+vite build → `1b20150` HANDOFF → `e0f4fc8` BASELINE）；
+Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留到 v0.4 与主题/无障碍一起改）；tag `v0.2.0` 已推送。
 
 线上核验证据见 §4。
 
@@ -53,9 +57,9 @@
 
 | 版本 | 要点 | 关键校准点 |
 | :-- | :-- | :-- |
-| v0.2-D | Prettier（**独立提交** `style:`）+ 可选 ESLint；Lighthouse 移动端基线写进 `docs/BASELINE.md`；把 `npm run check` 换成真检查 | 不设 Lighthouse CI 门禁；体积口径用 `zlib.gzipSync` |
-| v0.3-A | `notes/*.md` + hash 路由（`#/notes`、`#/notes/<slug>`）+ marked&DOMPurify + **构建期**排除 draft + sitemap/robots | draft 必须在构建期排除；代码高亮选 highlight.js(core)；浮层/渲染懒加载 |
-| v0.3-B | 校验收扩展到 notes；ARCHITECTURE 补「渲染策略与升级触发器」 | **不做** `web/snapshot/` 与 `export_content.py`（推迟到 v0.5-A） |
+| ~~v0.2-D~~ | ✅ 已完成（见 §0 / §4） | — |
+| ~~v0.3-A~~ | 🟡 本地完成、待 `git push origin main`（见 §0） | — |
+| v0.3-B | ① notes 的日期格式校验（写错日期 → 构建失败）；② ARCHITECTURE 补「渲染策略与升级触发器」；③ 改写 PLAYBOOK §5.2-B 去掉 snapshot/export_content | **不做** `web/snapshot/` 与 `export_content.py`（D5，推迟到 v0.5-A）；做完打 `v0.3.0` |
 | v0.4-A | 明暗主题、项目筛选、简历、OG、无障碍、真机 | 主题防闪烁；hash 路由下筛选参数自己解析；砍单序：简历 PDF → OG → 主题 |
 | v0.5-A | FastAPI 只读 API（`/api/v1`）+ 统一错误结构 + request-id + CORS 白名单 | 两侧 schema 一致性测试；不接数据库 |
 | v0.5-B | 部署到免费 PaaS + **前端降级硬验收** | 先执行 ADR-005 现查六问；降级阶梯 Render→HF Spaces→Fly；三种演练手法 |
@@ -76,17 +80,20 @@
 | D3 | 内容管线在构建期（校验 / draft 排除 / sitemap），前端不做运行时校验 | ✅ 已落地 | `web/build/*` |
 | D4 | 禁用 JS 只承诺 姓名/定位/邮箱/GitHub；项目卡由 JS 渲染 | ✅ 已落地 | ARCHITECTURE §4 |
 | D5 | 不做 `web/snapshot/`、不做 `export_content.py`（推迟到 v0.5-A） | ✅ 本期遵守，v0.3-B 复核 | ARCHITECTURE §3 / PLAYBOOK §5.2-B |
-| D6 | 代码高亮选 highlight.js（core + 手动注册语言），排除 shiki | ⏳ v0.3-A | PLAYBOOK §5.2-A / ARCHITECTURE §1 |
+| D6 | 代码高亮选 highlight.js（core + 手动注册语言），排除 shiki | ✅ 已落地（v0.3-A，5 种语言） | PLAYBOOK §5.2-A / 代码注释 |
 | D7 | CI 按路径过滤（web-ci / api-ci 各管各的） | ⏳ v0.8-A | PLAYBOOK §5.7 |
 | D8 | SSE 平台超时 → 降级为一次性返回 | ⏳ v0.7-A | ARCHITECTURE §8 |
 | D9 | 相似度阈值用 20 条评测集标定 | ⏳ v0.7-A | ARCHITECTURE §8 + `docs/AI-EVAL.md` |
 | D10 | `ip_hash = SHA256(IP + IP_HASH_SALT + 日期前缀)`，不每日换盐 | ⏳ v0.6-A | ARCHITECTURE §7 |
 | D11 | v0.5 部署降级阶梯；三者都不可用则不虚报 done | ⏳ v0.5-B | ADR-005 / ROADMAP §5 |
 | D12 | 项目卡内容修正（Node.js→FastAPI、笔记卡合并、status 诚实） | ✅ 已落地（v0.2-C） | `web/content/projects/*.md` |
-| D13 | `#/notes` 暂用纯文本，不新增 front-matter 字段 | ⏳ v0.3 再评估 | — |
+| D13 | `#/notes` 暂用纯文本，不新增 front-matter 字段 | 🟡 v0.3-B 再评估（当前仍是纯文本） | — |
 | D14 | `profile.json` 字段面封口：8 必填 + 4 可选 | ✅ 已落地 | ARCHITECTURE §5 |
-| D15 | 体积统一用 `zlib.gzipSync` 口径 | ⏳ 写进 BASELINE（v0.2-D） | `docs/BASELINE.md` |
+| D15 | 体积统一用 `zlib.gzipSync` 口径 | ✅ 已落地（v0.2-D 写入，v0.3-A 沿用） | `docs/BASELINE.md` |
 | D16 | Vite 8 插件用 `hotUpdate`（`handleHotUpdate` 已弃用） | ✅ 已落地 | 代码注释 |
+| D17 | hash 路由**只接管 `#/` 开头的 hash**；`#about` 等锚点仍走原生滚动 | ✅ 已落地（v0.3-A） | PLAYBOOK §5.2-A / 代码注释 |
+| D18 | 构建产物**禁止**写 lastmod / 构建时间（保住可复现构建） | ✅ 已落地（sitemap/robots） | 代码注释 |
+| D19 | 首屏体积阈值：≤80KB gzip 保持静态 import，>80KB 才懒加载笔记渲染器 | ✅ 已落地（实测 54.16KB，未懒加载） | `docs/BASELINE.md` §2 |
 
 ---
 
@@ -103,6 +110,8 @@
 | 10-11 | **v0.2-C 部署（推送后）** | ✅ 通过 | run #4（`bbcb0b9`）success，30 秒；线上 HTML 与本地 `web/dist/index.html` **逐字节相同**（sha256 `0b366317…`）；新 JS `index-Co5RLd3b.js` 200，旧 JS 与 `/script.js` 均 404；线上 JS 内含 数据小工具 / 第一个 API 服务 / 本站笔记合集 / Python 编程基础与常用库 / FastAPI / SQLite；静态 HTML 含 姓名·定位·邮箱·GitHub·「正在学什么」 |
 | 10-11 | **A 块（ADR-011 + CLAUDE.md + HANDOFF）** | ✅ 通过 | `ee90d6c` / `be9a6a2` / `363c643` 已推送；`git ls-files` 含 `CLAUDE.md`；ADR-011 标题已是「单工作区 + git tag 留档」；无新 workflow run（docs/ 不在 paths），线上仍 200 |
 | 10-11 | **收尾（PLAYBOOK §2 + 近况日期）** | ✅ 通过 | `476148b` / `9fee6c2` 已推送；run（`c8af79e`）success 32 秒；线上 JS `index-CinFOPtF.js` 与本地逐字节相同；线上 bundle 含 2026-09-05 / 09-09 / 10-10 / 10-11，旧推断值 0 命中 |
+| 10-11 | **v0.2-D** | ✅ 通过 | tag `v0.2.0` 在远端；`style:` 是独立提交（10 文件纯格式化）；`npm run check` = prettier+eslint+vite build；BASELINE 四项 100/95/100/100 |
+| 10-11 | **v0.3-A（本地）** | ✅ 通过（待推送） | 架构师复核：`slugFromFilename` 已去目录前缀；CRLF 归一化已修；notes 集合带 `withBody` + draft 构建期排除；sitemap/robots 无 lastmod；**我自己重跑两次 build，5 个 dist 文件 sha256 逐字节一致**；dist bundle 含笔记标题 |
 
 ---
 
@@ -117,7 +126,9 @@
   `raw.githubusercontent.com` 需 `--ssl-no-revoke`。
 - **gzip 体积口径**：统一用 Node `zlib.gzipSync`（`gzip` 命令行会多写文件名与 mtime，数字不可比）。
 - **无 JS 降级**：姓名 / 定位 / 邮箱 / GitHub 必须留在静态 HTML。
-- **可回滚锚点**：远端已有 tag `v0.2-B` → `a2e7f18`（该 ref 自带 `web-deploy.yml`，可用于 `workflow_dispatch` 回滚）。
+- **可回滚锚点**：远端现有 tag `v0.1.0` / `v0.2-A` / `v0.2-B` → `a2e7f18` / `v0.2.0` → `e0f4fc8`。
+  注意：`workflow_dispatch` 指定 ref 回滚时，该 ref 必须自带 `web-deploy.yml` —— 所以只有 `v0.2-B` 及以后的 tag 可用。
+- **首个真实回滚演练**仍待做（ROADMAP §9 要求 v0.9 前至少演练一次）。
 - **验收判据要写语义，不要写字面 grep**：文档修订常常需要「点名已废弃的旧路径」
   （ADR-011 与 PLAYBOOK §2 都要提到 `v2.1-A` 才能把废弃说明白），所以判据应写成
   「没有一处把 X 当作在用的做法」，而不是「grep 不到 X」。这条已两次踩到。
@@ -126,6 +137,8 @@
 
 ## 6. 本文件自身的落库方式
 
-本文件由产品架构师创建，**尚未提交**。建议由 Claude Code 提交：
-`docs: 添加架构师交接与核验记录（HANDOFF.md）`，
-并在 `docs/ARCHITECTURE.md` §3 的 docs 目录清单里补一行 `HANDOFF.md`。
+本文件由产品架构师创建与维护，**已入库**（首次提交 `363c643`，`docs/ARCHITECTURE.md` §3 的 docs 清单也已补上它）。
+后续每次架构师更新后，由 Claude Code 用 `docs: 更新 HANDOFF（…）` 一并提交——避免它长期停在旧状态。
+
+> 教训记录：v0.2-D 落地后我漏更了 §0 的状态表与 §2 的队列，导致文件一度显示「v0.2-D 未开始」。
+> 台账类文档必须与版本同步更新，否则比没有更糟（会误导下一个接手的人）。
