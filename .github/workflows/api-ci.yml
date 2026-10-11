@@ -19,11 +19,19 @@ on:
     paths:
       - 'api/**'
       - 'web/content/**'
+      # Dockerfile 按 D35 移到了仓库根，不再属于 api/** —— 不加这两条，
+      # 「改了镜像」这件事就不会触发任何检查（这正是要补的盲区）。
+      - 'Dockerfile'
+      - '.dockerignore'
       - '.github/workflows/api-ci.yml'
   pull_request:
     paths:
       - 'api/**'
       - 'web/content/**'
+      # Dockerfile 按 D35 移到了仓库根，不再属于 api/** —— 不加这两条，
+      # 「改了镜像」这件事就不会触发任何检查（这正是要补的盲区）。
+      - 'Dockerfile'
+      - '.dockerignore'
       - '.github/workflows/api-ci.yml'
   workflow_dispatch:
 
