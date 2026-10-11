@@ -194,7 +194,6 @@ personal-portfolio/
 │   │   │   ├── markdown.js       # marked + DOMPurify
 │   │   │   └── format.js         # 日期、阅读时长
 │   │   └── styles/               # 拆分后的 CSS
-│   ├── snapshot/                 # 由构建脚本生成的内置数据快照（降级用）
 │   ├── vite.config.js
 │   └── package.json
 ├── api/                          # ── 后端（FastAPI）
@@ -207,7 +206,7 @@ personal-portfolio/
 │   │   └── data/                 # index.json（v0.7 向量索引）
 │   ├── scripts/
 │   │   ├── build_index.py        # 生成向量索引
-│   │   └── export_content.py     # content/*.md → 前端快照（与前端共享解析逻辑）
+│   │   └── export_content.py     # v0.5 定：把内容导出为后端可读结构（前端不再用它做快照）
 │   ├── tests/
 │   ├── alembic/                  # v0.6 迁移
 │   ├── requirements.txt
