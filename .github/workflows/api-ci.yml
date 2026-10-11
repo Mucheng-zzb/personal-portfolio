@@ -70,6 +70,35 @@ jobs:
         # CI 的日志是要被人翻的，结果行不能省。
         run: pytest
 
+      # ↓ 下面两步是 D36：这个 Dockerfile 从写下来起就没被真正构建过，
+      #   而「改了 Dockerfile」在补上 paths 之后也只是把 pytest 再跑一遍 ——
+      #   绿灯不代表镜像能构建。ubuntu runner 自带 Docker，1–2 分钟换掉这个盲区。
+      - name: docker build
+        working-directory: .
+        # 上下文必须是仓库根（Dockerfile 就在那儿，D35）：容器里要有 web/content/。
+        run: docker build -t portfolio-api:ci .
+
+      - name: 镜像冒烟测试（顺带验 D35 的 ${PORT:-8000}）
+        working-directory: .
+        run: |
+          # 故意用非默认端口：镜像若把端口写死成 8000，这一步就会连不上 ——
+          # 这正是 D35 要防的「构建成功但路由不通」。
+          docker run -d --name api-ci -e PORT=9000 -p 9000:9000 portfolio-api:ci
+
+          # 容器起来要一两秒，轮询等它（最多 40 秒）
+          for i in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:9000/api/v1/health > /tmp/health.json && break
+            sleep 2
+          done
+
+          cat /tmp/health.json
+          # 真的断言一下，而不是「看起来起了」：内容没进镜像的话 /health 会是 503
+          grep -q '"status":"ok"' /tmp/health.json
+
+          # 顺带把容器的启动日志打出来 —— 里面能看到 env=production 与读到的内容目录
+          docker logs api-ci | tail -20
+          docker rm -f api-ci
+
       # ↓ 下面两步与 python 无关，但都守的是「后端不能悄悄坏掉」。
       #   它们放在这里而不是新建一个 workflow：触发条件几乎完全重合，
       #   分成两个 workflow 只会让「谁跑过了」更难看清。

@@ -23,8 +23,17 @@ FROM python:3.12-slim
 
 # 1) 不写 .pyc；2) 日志不缓冲 —— 容器里日志要能立刻看见，
 #    否则出问题时看到的最后一行可能是十分钟前的。
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+#
+# ⚠️ **一行一个 ENV，不要用行尾 `\` 续行**（D37）：
+#    SnapDeploy 从 Dockerfile 检测环境变量时，把续行符连同它前面的空格
+#    一起当成了值的一部分 —— 实测检测到的是
+#    `PYTHONDONTWRITEBYTECODE=1\` 与 `CONTENT_DIR=/app/web/content \`。
+#    而**平台检测到的值会覆盖镜像里的值**：CONTENT_DIR 带了个尾巴，
+#    容器就去找一个名叫「/app/web/content \」的目录 → 启动即 503
+#    （部署当天最容易被误判成「代码坏了」的那种失败）。
+#    一行一个就没有续行符可吃，任何朴素的解析器都不会踩到。
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
@@ -38,8 +47,9 @@ COPY web/content /app/web/content
 
 # 镜像里内容在哪儿，就在这儿显式写死：
 # 代码里的默认值（仓库根/web/content）在容器里不成立。
-ENV CONTENT_DIR=/app/web/content \
-    ENV=production
+# 同样一行一个（D37，原因见上面 ENV 那一大段注释）。
+ENV CONTENT_DIR=/app/web/content
+ENV ENV=production
 
 # 端口：EXPOSE 只是**声明**（本地默认仍是 8000，docker run -p 8000:8000 照旧），
 # 真正的端口由启动命令决定（见下面的 CMD）。
