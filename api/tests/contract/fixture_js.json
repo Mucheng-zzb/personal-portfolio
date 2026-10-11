@@ -11,7 +11,8 @@
     "notes": [
       "web/content/notes/assignment-is-not-copy.md",
       "web/content/notes/function-definition-vs-call.md",
-      "web/content/notes/print-is-not-return.md"
+      "web/content/notes/print-is-not-return.md",
+      "web/content/notes/what-is-api.md"
     ],
     "profile": "web/content/profile.json",
     "now": "web/content/now.json"
@@ -157,6 +158,17 @@
       }
     ],
     "notes": [
+      {
+        "slug": "what-is-api",
+        "title": "API 不是“一个服务”，是一组约定好的地址",
+        "date": "2026-10-11",
+        "tags": [
+          "FastAPI"
+        ],
+        "summary": "API 的“在不在”看的是地址有没有被约定过；404 恰恰说明服务器活着，并且正常回答了。",
+        "draft": false,
+        "body": "## 一句话结论：\n\n一个 API 不是“一个程序”，而是一组**约定好的地址**：用某个方法请求某个路径，它按约定回你一个状态码和一段 JSON。\n\n## 我遇到的问题\n\n我的站点本来是纯静态的，页面上的东西在构建时就已经写进了产物里。\n\n后来多了一个独立部署的后端 API，问题就来了：页面上的数据到底是从哪来的？“后端挂了”又是什么样子？\n\n我一开始把 API 当成“一个服务”——它在，数据就有；它不在，就什么都没有。\n\n## 我以为对的 / 原来的做法\n\n我以为 404 是“服务器出事了”，看到 404 的第一反应是后端挂了。\n\n其实 404 是服务器**活着并且正常回答**了：它按约定告诉我“这个地址我没有”。\n\n真正“挂了”的样子是另外几种：连不上、等不到回应（超时）、或者拿到 503。\n\n## 现在怎么做\n\n我的 7 个接口就是这份约定的清单，全部挂在 `/api/v1` 下：`/health`、`/profile`、`/projects`、`/projects/{slug}`、`/notes`、`/notes/{slug}`、`/now`。\n\nFastAPI 会按这些代码自动生成一份接口说明，打开 `/docs` 就能看到，不用自己另外写文档。\n\n报错也是约定的一部分。我的 API 只回三个键，形状固定：\n\n```json\n{ \"error\": { \"code\": \"not_found\", \"message\": \"...\", \"request_id\": \"...\" } }\n```\n\n`code` 是给程序判断用的（现在是 `not_found`、`method_not_allowed`、`validation_error`、`content_unavailable`、`internal_error` 这 5 个），`message` 是给人看的。前端只要读 `error.code`，就能决定显示哪句文案。\n\n## 代价与边界\n\nAPI 独立部署之后，会多出几个本地根本遇不到的问题。\n\n免费实例会休眠，而且**发接口请求唤不醒它**——实测连打 19 次请求、97 秒回回都是 503 的唤醒页，只有**用浏览器打开那个 URL** 才会真正启动，大约 60 秒后恢复。所以前端设了 3 秒超时：3 秒拿不到就用手上已有的内容，绝不让首屏等它。\n\n跨域是另一道坎。浏览器只允许白名单里的来源访问，还会先发一次 `OPTIONS` 预检；我的 CORS 只放开了 `GET` 和 `OPTIONS`。\n\n这两件事都属于“本地跑得好好的、上线才冒出来”的类型，值得各自单独写一篇。\n\n## 一句话总结\n\nAPI 的“在不在”，看的是**这个地址有没有被约定过**；404 是一次回答，不是崩溃。"
+      },
       {
         "slug": "print-is-not-return",
         "title": "print 不是 return：没写 return，函数交回的就是 None",
