@@ -55,8 +55,8 @@
 | Web 框架 | FastAPI | 自动 OpenAPI、类型校验、异步、生态大 |
 | ASGI 服务器 | Uvicorn | FastAPI 标准搭配 |
 | 数据校验 | Pydantic v2 | FastAPI 内置依赖 |
-| ORM/迁移 | SQLModel + Alembic（v0.6） | 与 FastAPI 同作者、学习曲线平缓 |
-| 数据库 | 本地 SQLite / 线上托管 Postgres | 零成本起步，SQL 语法一致 |
+| ORM/迁移 | SQLModel + Alembic（v0.6 已砍：平台无持久磁盘，延后 v1.1） | 与 FastAPI 同作者、学习曲线平缓 |
+| 数据库 | 本地 SQLite / 线上托管 Postgres（v0.6 已砍：平台无持久磁盘，延后 v1.1） | 零成本起步，SQL 语法一致 |
 | 后端测试 | pytest + httpx | FastAPI 官方推荐 |
 | LLM | 可替换的 Provider 接口（首选免费额度明确的供应商） | 避免被单一供应商锁死 |
 | 向量检索 | JSON 索引 + NumPy 余弦相似度 | 语料 < 200 条，杀鸡不用牛刀 |
@@ -435,6 +435,9 @@ data: {"type":"done","cached":false}
 ---
 
 ## 7. 数据模型（v0.6）
+
+> **本节对应的 v0.6 已于 2026-10-11 砍掉**（SnapDeploy 免费档无持久磁盘、无免费数据库）。
+> 正文保留备查，供 v1.1 使用。
 
 ```text
 guestbook
