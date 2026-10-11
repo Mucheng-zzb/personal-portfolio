@@ -217,9 +217,18 @@ function formatYamlError(err) {
   return `${where}${reason}`;
 }
 
-/** data-toolkit.md → data-toolkit */
+/**
+ * 文件名 / 相对路径 → slug。
+ *   'data-toolkit.md'                      → 'data-toolkit'
+ *   'web/content/notes/data-toolkit.md'    → 'data-toolkit'
+ *
+ * 一定要先丢掉目录部分：slug 是【路由用的标识】（#/notes/<slug>），
+ * 带着 web/content/notes/ 前缀的话，URL 会变成 #/notes/web/content/notes/x，
+ * 在 router 里被切成 5 段而匹配不上任何路由，点了链接会掉回首页。
+ */
 export function slugFromFilename(filename) {
-  return filename.replace(/\.md$/i, '');
+  const base = String(filename).slice(String(filename).lastIndexOf('/') + 1);
+  return base.replace(/\.md$/i, '');
 }
 
 /* ============================================================
