@@ -80,6 +80,9 @@
           <!-- 这一项是【路由链接】不是锚点：#/ 开头的 hash 由 src/router.js 接管，
                而 #about 这类不带斜杠的仍然走浏览器原生滚动。两种链接共用一条导航。 -->
           <a class="nav__link" href="#/notes">笔记</a>
+          <!-- 简历也是【路由链接】（v0.4-A）：它是一张独立的、要能单独打印的页面，
+               不是首页里的某个板块，所以没有锚点可滚。 -->
+          <a class="nav__link" href="#/resume">简历</a>
           <a class="nav__link" href="#now">近况</a>
           <a class="nav__link" href="#contact">联系</a>
         </nav>
@@ -296,6 +299,18 @@
               <!-- → profile.contactNote（可选字段，缺省时保留这行原句） -->
               <p class="contact-card__hint" id="contactGithubNote">代码和练习都会放在这里</p>
             </div>
+
+            <!-- 简历卡（v0.4-A）：需求要求「简历入口在导航与联系区各一个」。
+                 这里给两条路：先看能滚动的网页版，再拿能发出去的 PDF 版。
+                 href 用相对路径 ./resume.pdf（Vite 的 base 是子路径，
+                 绝对路径 /resume.pdf 在 Pages 上会 404）。 -->
+            <div class="card contact-card">
+              <h3 class="card__title">简历</h3>
+              <a class="contact-card__value" href="#/resume">网页版（一页纸）</a>
+              <a class="btn btn--small btn--ghost" href="./resume.pdf" download="周同学-简历.pdf">
+                下载 PDF
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -339,6 +354,34 @@
           <p class="section__lead">按状态或标签筛一筛，筛选结果就在地址栏里，可以直接复制分享。</p>
 
           <div id="projectListView"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ 简历视图（v0.4-A） ============
+         这一页的 h1 是【姓名】而不是「简历」：它会用浏览器「打印成 PDF」变成
+         web/public/resume.pdf，那一页纸的开头就该是名字，
+         顶上再写「简历」两个字没有意义（栏目归属由 section__eyebrow 的 / Resume 交代）。
+
+         姓名与定位静态写在这里，由 renderProfile() 覆写文字 ——
+         和首屏同一个理由：禁用 JS 也要看得见。
+         下面 #resumeBody 的四栏（教育 / 技能 / 项目 / 联系方式）由 src/ui/resume.js 生成。 -->
+    <div id="resumeView" hidden>
+      <section class="section">
+        <div class="container">
+          <p class="section__eyebrow">/ Resume</p>
+          <h1 class="section__title resume__name" id="resumeName">周同学</h1>
+          <p class="section__lead resume__tagline" id="resumeTagline">
+            大一在读，在学后端与 AI，想做出自己的第一个作品。
+          </p>
+
+          <p class="resume__actions">
+            <a class="btn btn--ghost btn--small" href="./resume.pdf" download="周同学-简历.pdf"
+              >下载 PDF 版 ↗</a
+            >
+          </p>
+
+          <div id="resumeBody"></div>
         </div>
       </section>
     </div>

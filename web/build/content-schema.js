@@ -314,6 +314,11 @@ const PROFILE_OPTIONAL = {
   resume: { kind: 'plainString' },
   contactNote: { kind: 'nonEmptyString', expected: '非空字符串' },
   footerNote: { kind: 'nonEmptyString', expected: '非空字符串' },
+  // 简历页「教育」栏那一行字（v0.4-A）。
+  // 刻意只收一个字符串：学校 / 专业 / 入学时间还没有可公开的数据，
+  // 为一个字段写 bespoke 校验不划算。将来真要公开这些，再升级成
+  // education[{school, major, start, end?}]，那时才值得写专门校验。
+  education: { kind: 'nonEmptyString', expected: '非空字符串' },
 };
 
 function validateProfile(root, relPath) {

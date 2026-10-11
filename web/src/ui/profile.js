@@ -32,6 +32,12 @@ export function renderProfile(profile) {
   /* ---- 定位：首屏副标题 ---- */
   setText('heroTagline', profile.tagline);
 
+  /* ---- 姓名 / 定位：简历页抬头（v0.4-A）。
+       简历页的 h1 就是姓名（它会变成 PDF 的第一行），
+       所以这两处和首屏一样是"静态 HTML + 覆写文字"的写法。 ---- */
+  setText('resumeName', profile.name);
+  setText('resumeTagline', profile.tagline);
+
   /* ---- 邮箱：显示文字 + mailto 链接 + 复制按钮读的 data-email 三处一起改 ---- */
   const emailLink = document.getElementById('contactEmail');
   if (emailLink) {

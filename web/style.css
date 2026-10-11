@@ -1248,6 +1248,105 @@ html.theme-light .theme-toggle__sun {
   color: var(--text);
 }
 
+/* ---- 4.11 简历页（#/resume） ---- */
+
+/* 抬头。h1 就是姓名 —— 它会变成 PDF 的第一行 */
+.resume__tagline {
+  margin-bottom: 24px;
+}
+
+.resume__actions {
+  margin-bottom: 40px;
+}
+.resume__actions .btn {
+  margin-top: 0; /* .btn--small 自带 margin-top，这里不需要 */
+}
+
+.resume__section {
+  margin-bottom: 36px;
+}
+.resume__section-title {
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.resume__edu {
+  font-size: 1rem;
+  color: var(--text);
+}
+/* 兜底文案（字段没填）淡一点，一眼能看出是占位而不是事实 */
+.resume__edu--missing {
+  color: var(--text-faint);
+}
+
+.resume__skills {
+  display: grid;
+  gap: 12px;
+}
+.resume__skill {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  align-items: baseline;
+}
+.resume__skill-title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--text);
+}
+.resume__skill-items {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.resume__projects {
+  display: grid;
+  gap: 20px;
+}
+.resume__project-title {
+  margin-bottom: 4px;
+  font-size: 1rem;
+  font-weight: 650;
+}
+.resume__project-title a {
+  color: var(--link);
+}
+.resume__project-title a:hover {
+  color: var(--text);
+}
+.resume__project-meta {
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.resume__project-desc {
+  font-size: 0.94rem;
+  color: var(--text-muted);
+}
+
+.resume__contacts {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px 16px;
+}
+.resume__contacts dt {
+  font-size: 0.9rem;
+  color: var(--text-faint);
+}
+.resume__contacts dd {
+  margin: 0;
+}
+.resume__contacts a {
+  color: var(--link);
+}
+.resume__contacts a:hover {
+  color: var(--text);
+}
+
 /* ============================================================
    5. 进场动画
    注意：初始的"隐藏"状态只有在 JS 成功加载后才会生效
@@ -1339,6 +1438,17 @@ html.theme-light .theme-toggle__sun {
   .note-nav {
     font-size: 0.85rem;
   }
+
+  /* 简历：两栏（标签 + 内容）在窄屏上要塌成一栏，
+     否则「Python · SQL · Git」这种长串会被挤成一根竖条 */
+  .resume__skill,
+  .resume__contacts {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+  }
+  .resume__contacts dt {
+    margin-top: 8px;
+  }
 }
 
 /* 小屏手机：进一步压缩 */
@@ -1378,4 +1488,118 @@ html.theme-light .theme-toggle__sun {
     opacity: 1;
     transform: none;
   }
+}
+
+/* ============================================================
+   8. 打印 / 导出 PDF
+
+   web/public/resume.pdf 就是这么来的：本地起 preview，用浏览器打开 #/resume，
+   再「打印成 PDF」（重新生成的具体命令见 README）。
+   做法不是另做一份简历模板，而是把这一页的"网页外壳"全部关掉、强制亮色 ——
+   于是简历永远只有一份事实来源（web/content/），不会出现 PDF 与网页对不上。
+
+   为什么要强制亮色：打印/PDF 是白纸，暗色主题会变成一大片黑底，既费墨又难读。
+   这里的 :root 覆盖对两套主题都生效（html.theme-light 的值本身就是亮色，
+   对它的读者来说结果一样）。
+   ============================================================ */
+@media print {
+  :root {
+    color-scheme: light;
+    --bg: #ffffff;
+    --surface: transparent;
+    --surface-hover: transparent;
+    --tint: transparent;
+    --hairline: rgba(16, 24, 40, 0.15);
+    --border: rgba(16, 24, 40, 0.15);
+    --text: #101828;
+    --text-muted: #475467;
+    --text-faint: #5d6b82;
+    --link: #2557c7;
+    --code-bg: #f6f8fa;
+  }
+
+  /* 一页纸上不需要的东西：背景装饰、吸顶导航、页脚、跳转链接、按钮、主题开关 */
+  .bg,
+  .header,
+  .footer,
+  .skip-link,
+  .resume__actions,
+  .theme-toggle {
+    display: none !important;
+  }
+
+  /* 【必须一页纸装下】屏幕上的字号和留白是给滚动准备的，纸上没有滚动这件事。
+     html 的字号一调，所有 rem 尺寸（各栏标题、间距）等比缩小；
+     body 是 px 写的，得单独降一档。改这两个数之前数一遍 PDF 页数。 */
+  html {
+    font-size: 12.5px;
+  }
+  body {
+    font-size: 13.5px;
+    background: #fff;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: none;
+    padding-inline: 0;
+  }
+  .section {
+    padding: 0;
+    border-top: 0;
+  }
+  .section__eyebrow {
+    margin-bottom: 4px;
+  }
+
+  /* 大标题是 background-clip:text 的渐变字（color:transparent），
+     打印引擎不一定认这套，不兜底就会印出一片空白 */
+  .hero__title,
+  .logo span {
+    background: none;
+    color: var(--text);
+    -webkit-text-fill-color: var(--text);
+  }
+
+  .resume__name {
+    font-size: 20pt;
+    margin-bottom: 4px;
+  }
+  .resume__tagline {
+    margin-bottom: 12px;
+  }
+  .resume__section {
+    margin-bottom: 14px;
+  }
+  .resume__section-title {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+  .resume__skills {
+    gap: 5px;
+  }
+  .resume__projects {
+    gap: 10px;
+  }
+  .resume__project-title {
+    margin-bottom: 2px;
+  }
+  .resume__project-meta {
+    margin-bottom: 2px;
+  }
+  .resume__contacts {
+    gap: 4px 16px;
+  }
+
+  .resume__section,
+  .resume__project {
+    break-inside: avoid; /* 一条项目被页面切开很难看 */
+  }
+}
+
+/* A4：中文简历的默认纸型（Chrome 默认给的是美式 Letter，窄一点，会更早翻页） */
+@page {
+  size: A4;
+  margin: 14mm;
 }

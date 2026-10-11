@@ -298,11 +298,13 @@ draft: false
 正文（Markdown）
 ```
 
-**`profile.json`**：`name / tagline / location / email / github / resume / heroChips[] / about[] / learning[] / skills[{title, items[]}] / contactNote / footerNote`
+**`profile.json`**：`name / tagline / location / email / github / resume / education / heroChips[] / about[] / learning[] / skills[{title, items[]}] / contactNote / footerNote`
 
 - 必填 8 项：`name`、`tagline`、`email`、`github`、`heroChips[]`、`about[]`、`learning[]`、`skills[{title, items[]}]`
   （字符串项一律要求非空；`email` 需含 `@`；`github` 需 `https://` 开头；`skills` 每项的 `items` 也必须非空）
-- 可选 4 项：`location`、`resume`（v0.4 才用）、`contactNote`、`footerNote` —— 缺省时不渲染对应内容，但**不报错**
+- 可选 5 项：`location`、`resume`（v0.4 才用）、`education`（v0.4-A 起，简历页「教育」栏那一行字，
+  只需非空字符串）、`contactNote`、`footerNote` —— 缺省时不渲染对应内容（简历页的教育栏改显示
+  「教育信息待补充」），但**不报错**
 - **列表型内容（`heroChips` / `about` / `learning` / `skills`）都以 `profile.json` 为唯一事实来源；
   新增一组技能或一条在学内容 = 改 `profile.json`，不需要改代码。**
 - 未知字段一律报错（拼错字段名必须当场构建失败）

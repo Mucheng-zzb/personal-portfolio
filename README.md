@@ -118,6 +118,7 @@ npm run dev     # 启动开发服务器
 | 你想改什么 | 改哪个文件 | 对应字段 |
 | :--- | :--- | :--- |
 | 姓名 / 一句话定位 / 邮箱 / GitHub | `web/content/profile.json` | `name` / `tagline` / `email` / `github` |
+| 简历页的「教育」栏 | `web/content/profile.json` | `education`（可选） |
 | 首屏那三个小标签 | `web/content/profile.json` | `heroChips` |
 | 「关于我」的两段正文 | `web/content/profile.json` | `about` |
 | 「正在学什么」那张卡 | `web/content/profile.json` | `learning` |
@@ -143,6 +144,33 @@ npm run dev     # 启动开发服务器
 - `name` 会自动出现在**三个地方**：页头 logo、首屏大标题、页脚。改一处就够了。
 - `github` 要写完整的 `https://...`，页面上的显示文字会自动去掉 `https://` 前缀。
 - 邮箱只要改 `email` 一处，链接、显示文字、复制按钮三处会一起跟着变。
+- 简历页（`#/resume`）的**「教育」栏就来自 `education`**（可选字段，一个字符串，
+  例：`"education": "专科在读（大一）"`）。不写这一项也不会构建失败，简历页那栏会显示
+  「教育信息待补充」；技能栏与项目栏分别自动取自 `skills` 和 `projects/`，不用重复填。
+
+### 简历页与 `resume.pdf` 怎么更新
+
+简历页**没有单独的内容文件**：教育取自 `profile.json` 的 `education`，技能取自 `skills`，
+项目取自 `projects/*.md`，联系方式取自 `email` / `github`。所以改完上面任一处，简历页自动跟着变。
+
+`web/public/resume.pdf` 是这一页「打印成 PDF」的产物（`style.css` 里的 `@media print`
+负责强制亮色并藏掉页头/页脚）。**改了内容想同步 PDF**，在**仓库根目录**跑：
+
+```bash
+# ① 起本地预览（另开一个终端）——注意用 /personal-portfolio/ 子路径打开，和线上一致
+cd web && npm run preview
+
+# ② 用本机 Chrome 把 #/resume 打印成 A4 PDF（Windows 路径按需替换）
+"C:/Program Files/Google/Chrome/Application/chrome.exe" \
+  --headless=new --disable-gpu --no-pdf-header-footer \
+  --print-to-pdf="$PWD/web/public/resume.pdf" \
+  "http://localhost:4173/personal-portfolio/#/resume"
+
+# ③ 确认还是一页（改动后偶尔会溢出到第二页，那就调小 style.css 打印段里的 html 字号）
+cd web && npm run build
+```
+
+> 不想折腾 PDF：`#/resume` 那个网页版本身就是一页纸，浏览器里 Ctrl+P 也能直接印。
 
 ### 怎么改技能分组
 

@@ -28,6 +28,7 @@ import { renderSkills } from './src/ui/skills.js';
 import { renderProjects, renderProjectList } from './src/ui/projects.js';
 import { renderNow } from './src/ui/now.js';
 import { renderNotesList, renderNoteDetail, renderRecentNotes } from './src/ui/notes.js';
+import { renderResume } from './src/ui/resume.js';
 import { initTheme } from './src/ui/theme.js';
 import { startRouter } from './src/router.js';
 
@@ -79,6 +80,7 @@ function renderContent() {
 const VIEW_ELEMENT = {
   notes: 'notesView',
   projects: 'projectsView',
+  resume: 'resumeView',
 };
 
 /**
@@ -91,6 +93,7 @@ const VIEW_ELEMENT = {
 const NAV_HREF_BY_VIEW = {
   notes: '#/notes',
   projects: '#projects',
+  resume: '#/resume',
 };
 
 /** 当前停在哪个视图。initActiveNav 的滚动补丁要用它判断该不该管导航高亮 */
@@ -196,6 +199,13 @@ function applyRoute(route, hash) {
       status: route.status,
       tag: route.tag,
     });
+    goToTop();
+    return;
+  }
+
+  if (route.name === 'resume') {
+    showView('resume');
+    renderResume(document.getElementById('resumeBody'), { profile, projects });
     goToTop();
   }
 }
