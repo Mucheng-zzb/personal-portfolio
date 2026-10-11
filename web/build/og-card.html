@@ -108,7 +108,10 @@
         font-size: 32px;
         line-height: 1.5;
         color: #98a2b6;
-        max-width: 880px;
+        /* 内容区实际宽度 = 1200 − 88×2 = 1024px。
+           这里要给足，让定位语【一行放得下】—— 差一点点就换行的话，
+           第二行只会剩两三个字，分享出去很难看（改文案后重新截图时留意）。 */
+        max-width: 1000px;
       }
 
       .rule {
@@ -139,7 +142,7 @@
       <p class="eyebrow">个人主页 · PORTFOLIO</p>
       <h1 class="name">周同学</h1>
       <div class="rule"></div>
-      <p class="tagline">大一在读，在学后端与 AI，想做出自己的第一个作品。</p>
+      <p class="tagline">专科在读（大一），在学后端与 AI，想做出自己的第一个作品。</p>
       <p class="url">mucheng-zzb.github.io/personal-portfolio</p>
     </div>
   </body>
