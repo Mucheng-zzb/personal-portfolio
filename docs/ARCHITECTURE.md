@@ -50,7 +50,7 @@
 | 构建工具 | Vite | 零配置起步、开发服务器快、产物就是静态文件 |
 | Markdown | marked + DOMPurify | 体积小、够用、必须清洗 HTML |
 | 样式 | 原生 CSS（CSS 变量） | v0.1 已有基础，无需 Tailwind/Sass |
-| 前端测试 | Vitest | 与 Vite 同源，配置成本最低 |
+| 前端测试 | Playwright（两条黑盒冒烟） | 测的是「关掉 JS 还能不能用」「后端挂了还能不能用」，这类问题只有真浏览器能验；只进 devDependencies，不进产物 |
 | 后端语言 | Python 3.11+ | 与 AI 学习方向一致 |
 | Web 框架 | FastAPI | 自动 OpenAPI、类型校验、异步、生态大 |
 | ASGI 服务器 | Uvicorn | FastAPI 标准搭配 |
@@ -63,7 +63,7 @@
 | 前端托管 | GitHub Pages | 已上线、免费、与仓库同源 |
 | 后端托管 | 免费 PaaS 容器（见 ADR-005） | 目标 0 元 |
 | CI/CD | GitHub Actions | 与仓库同源、免费额度充足 |
-| 监控 | 免费 Uptime 服务 + 结构化日志 | 只求「挂了我知道」 |
+| 监控 | 结构化日志 + /health | **不做定时探活**：免费档 100 容器小时/月装不下（5 分钟探活≈720 h/月），且实测接口请求唤不醒休眠容器；只有 v0.7 的 LLM 预算需要告警 |
 
 ---
 
@@ -189,7 +189,7 @@ personal-portfolio/
 │   └── workflows/
 │       ├── web-deploy.yml        # 构建前端 → 发布 GitHub Pages
 │       ├── api-ci.yml            # 后端 lint + pytest
-│       └── web-ci.yml            # 前端 lint + vitest + build
+│       └── web-ci.yml            # 前端 npm run check + 体积门禁 + 两条 Playwright 冒烟
 ├── web/                          # ── 前端（静态）
 │   ├── index.html                # 骨架 + 首屏关键内容（JS 挂了也在）
 │   ├── public/
@@ -211,6 +211,12 @@ personal-portfolio/
 │   │   │   ├── markdown.js       # marked + DOMPurify
 │   │   │   └── format.js         # 日期、阅读时长
 │   │   └── styles/               # 拆分后的 CSS
+│   ├── scripts/
+│   │   ├── measure-size.mjs      # 首屏 gzip 体积（口径固定，见 BASELINE §2）
+│   │   └── build-api-down.mjs    # 构建「后端地址指向死域名」的产物，供降级冒烟用
+│   ├── tests/
+│   │   └── smoke/                # 两条黑盒冒烟：no-js.spec.js / api-down.spec.js
+│   ├── playwright.config.js      # 冒烟测试配置（只进 devDependencies）
 │   ├── vite.config.js
 │   └── package.json
 ├── api/                          # ── 后端（FastAPI）
@@ -236,7 +242,8 @@ personal-portfolio/
 │   ├── CLAUDE-CODE-PLAYBOOK.md
 │   ├── HANDOFF.md                # 架构师交接/决策登记/核验记录（非事实来源）
 │   ├── API.md
-│   └── BASELINE.md               # Lighthouse 基线
+│   ├── BASELINE.md               # Lighthouse 基线
+│   └── LEARNING.md               # 每版末 5 问口试，答案由本人写（D47）
 ├── CLAUDE.md                     # 给 Claude Code 的仓库级约定
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
@@ -436,7 +443,7 @@ guestbook
   message       varchar(500)  NOT NULL
   created_at    timestamptz   NOT NULL DEFAULT now()
   approved      boolean       NOT NULL DEFAULT true
-  ip_hash       char(64)      NOT NULL   -- SHA256(ip + 每日盐)，不存明文
+  ip_hash       char(64)      NOT NULL   -- SHA256(IP + IP_HASH_SALT + 日期前缀)，盐不每日轮换（D10）；不存明文
 
 ask_logs                      -- AI 可观测与成本核算
   id            PK

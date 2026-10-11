@@ -28,6 +28,7 @@ Claude Code 在每个任务中必须遵守：
 2. **只做被要求的事**：不重构无关代码、不顺手升级依赖、不改变既有视觉风格（除非任务明确要求）。
 3. **小步提交**：每个逻辑单元一次提交，Conventional Commits + 中文描述。
 4. **可验证**：每个任务结束必须运行对应命令（见 §6），并**粘贴真实输出**。禁止写「应该可以了」。
+   **完成标准**：任何改动 `web/**` 的提交，除 `npm run check` 外必须跑 `npm run smoke`（两条黑盒冒烟：禁用 JS / 后端不可达）。只跑 lint 与 build 不足以称完成 —— 它们看不见「关掉 JS」和「后端挂了」这两种失效。
 5. **降级优先**：任何外部依赖（API / 数据库 / LLM）都要先想好失效时怎么办。
 6. **密钥零容忍**：任何密钥只能来自环境变量；发现硬编码必须立即报告并修复。
 7. **同步文档**：改动涉及接口/结构/决策时，同一个 PR 内更新 `docs/` 与 `CHANGELOG.md`。
@@ -359,14 +360,14 @@ Claude Code 在每个任务中必须遵守：
 【目标】让项目'敢发布'：关键路径有测试、CI 能拦住坏代码、密钥零泄漏。
 【范围】
 1) 后端 pytest：每个端点契约测试（状态码 + 关键字段）、输入校验、限流、错误结构。用 httpx.AsyncClient + 临时数据库。
-2) 前端 Vitest：内容渲染、Markdown 清洗（XSS 用例）、API 降级路径。
+2) 前端 Playwright 黑盒冒烟（即 `npm run smoke` 那两条）：禁用 JS 仍见首屏关键内容、后端不可达时页面完整可读。**不引入单元测试框架**（选型理由见 ARCHITECTURE §1）。
 3) .github/workflows/api-ci.yml 与 web-ci.yml：lint + test + build，**push 到 main 时失败即阻断**（不设强制 PR 流程）。
 4) 安全：pip-audit / npm audit；密钥扫描；CORS 与 CSP 检查；.env.example 完整。
 5) 结构化日志补齐（request_id 贯穿、耗时、状态码）；健康检查说明（`/health`，**不做定时探活**，理由见 ARCHITECTURE §11）。
 6) 文档：CHANGELOG.md、CONTRIBUTING.md、LICENSE、docs/API.md（从 OpenAPI 生成或手写摘要）。
 【不做】不追求高覆盖率；不引入重量级测试框架；不做混沌工程。
 【验收标准】
-- [ ] pytest 与 npm test 全绿（粘贴输出）
+- [ ] pytest 与 npm run smoke 全绿（粘贴输出）
 - [ ] 故意提交一个坏测试/坏 lint 并 push，CI 变红拦下（附日志描述）
 - [ ] 依赖扫描无高危漏洞（粘贴结果）
 - [ ] git log -p 全历史搜索密钥无命中
@@ -417,13 +418,16 @@ Claude Code 在每个任务中必须遵守：
 ## 6. 常用验证命令
 
 ~~~text
-# 前端
+# 前端（在 web/ 下）
 cd web
 npm ci
-npm run check          # 格式 + lint
-npm test               # vitest
+npm run check          # 格式 + lint + 构建（prettier --check + eslint + vite build）
+npm run smoke          # 两条黑盒冒烟（禁用 JS / 后端不可达）
 npm run build          # 产出 web/dist
 npm run preview        # 本地预览构建产物
+
+# 前端体积（在**仓库根**跑，路径相对仓库根）
+node web/scripts/measure-size.mjs --pretty     # 首屏 gzip 体积（口径见 BASELINE §2）
 
 # 后端
 cd api
