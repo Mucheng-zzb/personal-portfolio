@@ -15,7 +15,7 @@
 | :--- | :--- | :--- |
 | `web/` | **唯一开发入口**，所有前端改动都做在这里 | 日常用 `cd web && npm run dev` |
 | `.github/workflows/web-deploy.yml` | 部署流水线 | push `main` 自动构建并发布（见[部署到 GitHub Pages](#部署到-github-pages)）|
-| `api/` | 后端（FastAPI），只读内容接口 | v0.5-A 起可用：`cd api && uvicorn app.main:app --reload`（见 `api/README.md`）|
+| `api/` | 后端（FastAPI），只读内容接口 | v0.5-A 代码可用（`cd api && uvicorn app.main:app --reload`）；v0.5-B 起前端会消费它，部署步骤见 `api/README.md` |
 
 > **过渡期踩过的坑，留个记录**：v0.2-A 到 v0.2-B 之间，根目录和 `web/` 各存了一份同名文件，
 > 因为当时的 Pages 是「从分支根目录部署」，直接删文件线上会**立刻 404**。
@@ -55,8 +55,10 @@ personal-portfolio/
 │   │   ├── resume.pdf         简历 PDF —— 由 #/resume「打印成 PDF」而来
 │   │   └── images/og.png      社交分享缩略图 1200×630
 │   ├── src/                浏览器侧代码
-│   │   ├── lib/content.js     读取 virtual:content 的薄封装
-│   │   └── ui/*.js            渲染模块（profile / hero / about / skills / projects / now / notes / resume / theme）
+│   │   ├── lib/content.js     读取 virtual:content 的薄封装（构建期内容）
+│   │   ├── lib/api.js         后端请求封装：3 秒超时、一次重试、错误归一化（v0.5-B）
+│   │   ├── lib/live.js        内容仓库：构建期内容 ↔ 实时数据的单一来源（v0.5-B）
+│   │   └── ui/*.js            渲染模块（profile / hero / about / skills / projects / now / notes / resume / theme / live-status）
 │   ├── index.html          页面结构（首屏静态字段 + 各路由视图的容器）
 │   ├── style.css           所有样式（设计令牌、各板块、响应式、打印）
 │   ├── script.js           入口：渲染内容 + 交互 + 路由（滚动淡入、导航高亮、复制邮箱…）
@@ -64,7 +66,8 @@ personal-portfolio/
 │   ├── package.json        四个脚本：dev / build / preview / check
 │   ├── node_modules/       依赖（不入库，已写进 .gitignore）
 │   └── dist/               构建产物（不入库，部署时现构建）
-├── api/                  后端：只读内容 API（FastAPI），v0.5-A 起可用（见 api/README.md）
+├── api/                  后端：只读内容 API（FastAPI）。v0.5-B 起前端会消费它（见 api/README.md）
+├── .github/workflows/    web-deploy.yml（前端部署）+ api-ci.yml（后端测试与密钥扫描）
 ├── docs/                 路线图（ROADMAP）与架构文档（ARCHITECTURE）
 └── README.md             就是这个文件
 ```
@@ -454,6 +457,22 @@ https://你的用户名.github.io/personal-portfolio/
 > 但只建议用来改 `README.md` 这类文件；`web/` 的改动请在本地做完、构建过再 push。
 
 ---
+
+## 后端 API（可选增强，v0.5-A/B）
+
+站点**不依赖后端**：所有内容在构建时就打进了产物里，后端只是「把同一份内容用 HTTP 再说一遍」。
+后端挂了、还没建、或者你压根没配地址，站点读起来完全一样 —— 这是硬要求，不是妥协。
+
+- 后端代码在 `api/`（FastAPI，只读接口，7 个端点）。部署后 `/docs` 有自动生成的文档。
+- **要在 Render 上怎么点**：见 `api/README.md` 的「部署到 Render」一节（那一步只能你来点）。
+- 前端在**构建期**通过仓库变量知道后端地址：
+  Settings → Secrets and variables → Actions → **Variables** → `API_BASE`（值形如 `https://xxx.onrender.com`，不带 `/api/v1`）。
+  **没设 = 纯静态站**，一个请求都不发，也不会出现任何「不可用」提示。
+- 拿到实时数据时，页脚会短暂显示「实时数据已同步」；后端不可用时页脚常驻
+  「实时数据不可用」，内容回退到构建期内置的那份，**控制台只打 warning、不刷红字**。
+
+> 免费实例闲置 15 分钟就休眠、唤醒约 1 分钟，而前端超时是 3 秒 ——
+> 所以**冷启动时你看到的多半就是降级后的样子**，这是预期内的，不是坏了。
 
 ## 下一步可以加什么
 

@@ -183,6 +183,90 @@ docker run --rm -p 8000:8000 portfolio-api
 > **未验证**：写下这个 Dockerfile 的机器上没有 Docker，**没有跑过 `docker build`**。
 > 只核对了它 COPY 的路径在仓库里都存在。第一次真正构建时请把输出贴回来。
 
+## 部署到 Render（v0.5-B）
+
+> **这一段是给「需要在网页上点几下」的那个人看的。** 仓库这边能做的都做完了，
+> 剩下的必须在 Render 的控制台里点 —— 那一步只能由账号持有者做。
+> 依据：`docs/ARCHITECTURE.md` ADR-005 的 2026-10-11 复核结论（HF Spaces 与 Fly.io 已不可用，
+> Render 是唯一免费选项）。**部署当天请重跑一次那六问**，别直接抄这一页。
+
+### 在 Render 上要点什么（按顺序）
+
+1. 注册 / 登录 <https://render.com>，用 GitHub 账号登录最省事。**不需要绑卡**
+   （不绑卡的代价见下面「出网流量」）。
+2. 右上 **New +** → **Web Service**。
+3. **Connect a repository** → 选 `Mucheng-zzb/personal-portfolio`（首次要授权 Render 读仓库）。
+4. 填这张表（**其余字段全部保持默认**）：
+
+   | 字段 | 填什么 | 为什么 |
+   | :--- | :--- | :--- |
+   | Name | 例如 `portfolio-api` | 决定默认域名 `https://<name>.onrender.com` |
+   | Language / Runtime | **Docker** | 用仓库里的 `api/Dockerfile` |
+   | Root Directory | **留空**（= 仓库根） | 构建上下文必须是仓库根，否则容器里没有 `web/content/`，起来就 503 |
+   | Dockerfile Path | `api/Dockerfile` | 相对 Root Directory |
+   | Instance Type | **Free** | 唯一免费的档 |
+   | Health Check Path | `/api/v1/health` | 内容坏掉时它返回 503，Render 会因此判为不健康（正是我们要的） |
+   | Auto-Deploy | **Yes**（默认） | push `main` 即部署；`api/**` 变更会触发（与 `web-deploy.yml` 的 paths 白名单互不干扰） |
+
+5. **Environment Variables** 里加下面两个（其余用代码里的默认值）：
+
+   | Key | Value |
+   | :--- | :--- |
+   | `ENV` | `production` |
+   | `CORS_ORIGINS` | `https://mucheng-zzb.github.io` |
+
+   不设 `CONTENT_DIR`：镜像里已经写死成 `/app/web/content`（见 `api/Dockerfile`）。
+   `ENV=production` 还会让 `/health` 不再暴露绝对路径（D33）。
+6. **Create Web Service**。首次构建会真的执行 `docker build` —— **这是这个 Dockerfile
+   第一次被真正构建**（写它的时候本机没有 Docker），失败请把 Build Log 贴回来。
+7. 构建成功后打开 `https://<name>.onrender.com/docs`，确认 7 个端点都在。
+
+### 部署完立刻验证（把输出贴回来）
+
+```bash
+HOST=https://<name>.onrender.com
+curl -s  "$HOST/api/v1/health"        # 200 + dependencies.content.status=ok
+curl -s  "$HOST/api/v1/projects" | head -c 300
+curl -sI "$HOST/api/v1/health" | grep -i x-request-id
+
+# CORS：白名单来源应当带回 access-control-allow-origin，伪造来源应当没有
+curl -sI -H 'Origin: https://mucheng-zzb.github.io' "$HOST/api/v1/projects" | grep -i access-control
+curl -sI -H 'Origin: https://evil.example'          "$HOST/api/v1/projects" | grep -i access-control || echo "（无 access-control 头 = 正确）"
+```
+
+### 然后把前端指过去（这一步不设，站点就是纯静态的）
+
+前端在**构建期**注入后端地址。在 GitHub 仓库里加一个**变量**
+（Settings → Secrets and variables → Actions → **Variables** → New repository variable）：
+
+| Name | Value |
+| :--- | :--- |
+| `API_BASE` | `https://<name>.onrender.com`（**不要带 `/api/v1`**） |
+
+然后手动跑一次部署：Actions → **Deploy web to GitHub Pages** → **Run workflow**（`workflow_dispatch`）。
+之后再打开站点，页脚会短暂显示「实时数据已同步」，说明这份数据是从后端拿的。
+
+> 变量没设时构建出的站点**不报错也不显示「不可用」**：它压根不发请求，就是原来的静态站。
+> 这是刻意的 —— 「后端还没建好」和「后端挂了」是两件事，不该让访客看到后者的提示。
+
+### 冷启动与「定时探活」的代价（想清楚再开）
+
+免费实例**闲置 15 分钟就休眠**，唤醒**约 1 分钟**；而前端超时是 3 秒，
+所以冷启动时访客看到的是**降级后的内置内容 + 页脚「实时数据不可用」**（站点功能不受影响）。
+
+要避免它就得定时ping（UptimeRobot 免费版 / GitHub Actions 定时任务，每 5 分钟一次）：
+
+- 常驻约 **720–744 实例小时/月**，而免费额度是 **750/月/工作区** —— 只有它**是唯一的免费服务**时才装得下；
+- 而且那样就永远没有休眠测试的机会了：**降级路径反而不会被真实触发**。
+- **建议：先不配探活**，让它睡。降级是这一版的硬验收，睡着才是常态。
+
+### 出网流量（2026-10-11 复核出的变化）
+
+免费档出网流量**已从 100 GB/月 降到 5 GB/月**，超出按 $0.15/GB；
+**没绑卡的账号超量后当月所有免费服务停用**。
+只读接口返回的是小 JSON（每次约 2 KB），5 GB ≈ 250 万次请求，够用；
+但**不要拿这个 API 托管图片或大文件** —— 那些继续放静态站。
+
 ## 两条一直有效的规矩
 
 1. **密钥永不进仓库。** 只写 `.env.example`，真值放平台的环境变量里（ADR-010）。
