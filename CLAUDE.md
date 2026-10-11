@@ -26,6 +26,9 @@
 - 前端（**在 `web/` 下执行**）：`npm ci` / `npm run dev` / `npm run build` / `npm run preview` / `npm run check`
   - `npm run check` 在 v0.2-D 完成前可能仍是 `vite build` 占位；真实质量基线见 `docs/BASELINE.md`
 - 后端（v0.5 起，在 `api/` 下）：`pip install -r requirements.txt` / `uvicorn app.main:app --reload` / `pytest`
+- 重生成契约 fixture（**在仓库根执行**）：`node api/tests/contract/regen_fixture.mjs`
+  - **唯一指定做法，不要用 shell 的 `>` 重定向**：Windows PowerShell 的 `>` 会把文件写成 UTF-16/BOM，
+    之后 pytest 报 `UnicodeDecodeError`（已踩两次）。改了 `web/content/**` 或 JS 排序规则后必须重跑。
 
 ## 提交规范
 Conventional Commits，描述用中文：`feat:` `fix:` `docs:` `chore:` `refactor:` `test:`；

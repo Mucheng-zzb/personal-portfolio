@@ -437,6 +437,11 @@ uvicorn app.main:app --reload
 pytest -q
 pip-audit
 
+# 契约 fixture（在**仓库根**执行；改了 web/content/** 或 JS 字段表/排序规则后必须重跑）
+node api/tests/contract/regen_fixture.mjs
+#   ↑ 唯一指定做法。**不要用 shell 的 `>` 重定向**：Windows PowerShell 的 `>` 会把文件
+#     写成 UTF-16/BOM，之后 pytest 报 UnicodeDecodeError（已踩两次）。
+
 # 冒烟
 curl -s https://<api-host>/api/v1/health | jq
 curl -s https://<api-host>/api/v1/projects | jq '.total'

@@ -111,11 +111,16 @@ JS 进程 import 不进 Python，所以这是**照抄规则 + 读同一份内容
 
 ```bash
 # ① 让 Node 真跑一次前端的校验器，把 JS 侧的期望值固化成 fixture（改了 web/content 就要重跑）
-node api/tests/contract/make_fixture.mjs > api/tests/contract/fixture_js.json
+node api/tests/contract/regen_fixture.mjs
 
 # ② pytest 拿同一份 web/content 跑 Python 侧，逐字段比对
 cd api && pytest tests/contract -q
 ```
+
+① 是**唯一指定做法**：不要写成 `make_fixture.mjs > fixture_js.json` —— Windows PowerShell 的 `>`
+会把文件写成 UTF-16/BOM，之后 pytest 报 `UnicodeDecodeError`（本项目已踩两次）。
+`regen_fixture.mjs` 自己接管了「跑 + 落盘」，明确按 UTF-8 写。
+跑完用 `git diff --stat` 自查：内容没变时它是幂等的。
 
 `fixture_js.json` 是「Node 的输出」，不许手改；它过期了（比如改了内容）测试就该红。
 
