@@ -100,7 +100,10 @@ export async function startLiveSync(onStatus = () => {}) {
   } catch (err) {
     // 到这里说明四个端点里至少有一个没成功 → 整份保持构建期内容（见规矩 2）
     onStatus('failed', { error: err });
-    console.warn(`[api] 实时数据不可用，继续使用构建期内置内容 —— ${err?.toString?.() ?? err}`);
+    // console 与「用户可见文案」是两种东西，措辞刻意不同：
+    // 可见文案要中性（D50：「显示的是构建时快照」—— 容器睡着是常态，而内容其实一字不差），
+    // console 是给排查的人看的，说清技术含义就够。
+    console.warn(`[api] 实时数据取不到，已回退到构建期内置内容 —— ${err?.toString?.() ?? err}`);
     return { ok: false, reason: 'error', error: err };
   }
 }
