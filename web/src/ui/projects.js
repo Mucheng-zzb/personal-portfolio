@@ -34,6 +34,19 @@ const HOME_LIMIT = 4;
 /** 列表页的路由前缀。筛选参数一律挂在这条路由上，理由见 src/router.js 的注释 */
 const LIST_PATH = '#/projects';
 
+/**
+ * 站内资源路径要带上 Vite 的 base。
+ *
+ * content 里的 cover 按 schema 要求写成「以 / 开头」（/images/x.webp），
+ * 那是「站点根」的意思，不是「域名根」。但线上站点挂在子路径
+ * /personal-portfolio/ 下，直接把它当 src 用会 404 到
+ * https://mucheng-zzb.github.io/images/x.webp（少了一层）。
+ * BASE_URL 由 Vite 在构建时替换成 vite.config.js 里的 base，开发和生产都对。
+ */
+const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const withBase = (sitePath) => `${BASE_URL}${sitePath}`;
+
 function externalLink(href, text) {
   return el('a', {
     class: 'link',
@@ -65,13 +78,13 @@ function coverPicture(src) {
     base === src
       ? []
       : [
-          el('source', { srcset: `${base}.avif`, type: 'image/avif' }),
-          el('source', { srcset: `${base}.webp`, type: 'image/webp' }),
+          el('source', { srcset: withBase(`${base}.avif`), type: 'image/avif' }),
+          el('source', { srcset: withBase(`${base}.webp`), type: 'image/webp' }),
         ];
 
   return el('picture', { class: 'project__cover' }, [
     ...sources,
-    el('img', { src, alt: '', loading: 'lazy', decoding: 'async' }),
+    el('img', { src: withBase(src), alt: '', loading: 'lazy', decoding: 'async' }),
   ]);
 }
 
