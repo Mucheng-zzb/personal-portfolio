@@ -139,7 +139,7 @@ npm run dev     # 启动开发服务器
 ```json
 {
   "name": "周同学",
-  "tagline": "大一在读，在学后端与 AI，想做出自己的第一个作品。",
+  "tagline": "专科在读（大一），在学后端与 AI，想做出自己的第一个作品。",
   "email": "254180649@qq.com",
   "github": "https://github.com/Mucheng-zzb"
 }
