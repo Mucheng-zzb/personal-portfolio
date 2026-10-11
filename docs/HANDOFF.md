@@ -6,7 +6,7 @@
 > 用途：产品架构师（只写 `.md`，不写代码）把「当前要交给 Claude Code 的活」「已定决策」「核验记录」
 > 集中在一处，避免每次靠聊天记录交接。
 >
-> 最后更新：2026-10-11（v0.2 全部完成并打了 v0.2.0；v0.3-A 本地完成、待推送）
+> 最后更新：2026-10-11（v0.2 全部完成并打了 v0.2.0；v0.3-A 已推送并通过线上逐字节核验；下一步 v0.3-B）
 
 ---
 
@@ -19,7 +19,7 @@
 | v0.2-C | ✅ 完成（`39a83df` / `7bf50f8` / `bbcb0b9` / `8a3925c`，已推送） | run #4 success（30 秒）；线上与本地 `web/dist` 逐字节相同（sha256 `0b366317…`）；体积 JS 1.41→4.64 KB gzip |
 | A 块（v0.2-B 遗留） | ✅ 完成（`ee90d6c` / `be9a6a2` / `363c643`） | ADR-011 改为 tag 留档；CLAUDE.md 已入库；docs/ 不在 paths 白名单，未触发部署，线上未受影响 |
 | v0.2-D | ✅ 完成（`9e3c10f` / `042ce4e` `style:` / `d8f3781` / `1b20150` / `e0f4fc8`，已推送） | 见 §4；tag `v0.2.0` 已打并推送；Lighthouse 100/95/100/100 写进 BASELINE |
-| v0.3-A 笔记子系统 | 🟡 本地完成、**待推送**（9 个提交，`main` ahead 9） | 架构师已复核：可复现（两次构建 sha256 一致）、notes 集合 + draft 构建期排除、sitemap/robots 无 lastmod、体积 54.16 KB gzip |
+| v0.3-A 笔记子系统 | ✅ 完成并已推送（`fb9d97b`；run `38114432920` success，31 秒） | 架构师复核：**线上 5/5 文件与本地 dist 逐字节一致**（HTML/JS/CSS/sitemap/robots）；notes 集合 draft 构建期排除；体积 JS 46.06 KB gzip（首屏 54.16 KB） |
 | v0.3-B → v1.0 | ⬜ 未开始 | 指令块已备齐（见 §2） |
 
 ---
@@ -50,6 +50,15 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 **教训（已写进 §5）**：我两次把验收判据写成「grep 不到 `v2.1-A`」，而我自己给的替换正文里
 正当地点了这个已废弃路径的名字。**字面 0 命中不是好判据**，应写成语义判据：
 「没有一处把 `v2.1-A` 当作在用的工作区」。
+
+### 1.3 下一步：v0.3-B（很小，三个提交以内）
+
+1. notes 的日期格式校验（故意写错日期 → 构建失败并指出文件 + 字段）；
+2. ARCHITECTURE 补「渲染策略与升级触发器」一节（客户端渲染 + 构建期内联；笔记 > 30 篇转预渲染）；
+3. 改写 PLAYBOOK §5.2-B：**去掉** `web/snapshot/content.json` 与 `export_content.py`（D5，推迟到 v0.5-A），
+   验收条改为「日期格式错误会导致构建失败」。
+
+做完 v0.3 结束 → 打 tag `v0.3.0` 并推送。**然后工程轨进入 v0.4（门面），内容轨必须同步启动 B1。**
 
 ---
 
@@ -112,6 +121,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 | 10-11 | **收尾（PLAYBOOK §2 + 近况日期）** | ✅ 通过 | `476148b` / `9fee6c2` 已推送；run（`c8af79e`）success 32 秒；线上 JS `index-CinFOPtF.js` 与本地逐字节相同；线上 bundle 含 2026-09-05 / 09-09 / 10-10 / 10-11，旧推断值 0 命中 |
 | 10-11 | **v0.2-D** | ✅ 通过 | tag `v0.2.0` 在远端；`style:` 是独立提交（10 文件纯格式化）；`npm run check` = prettier+eslint+vite build；BASELINE 四项 100/95/100/100 |
 | 10-11 | **v0.3-A（本地）** | ✅ 通过（待推送） | 架构师复核：`slugFromFilename` 已去目录前缀；CRLF 归一化已修；notes 集合带 `withBody` + draft 构建期排除；sitemap/robots 无 lastmod；**我自己重跑两次 build，5 个 dist 文件 sha256 逐字节一致**；dist bundle 含笔记标题 |
+| 10-11 | **v0.3-A 部署（推送后）** | ✅ 通过 | `fb9d97b` 已推送（`main == origin/main`）；run `38114432920` success 31 秒；线上 index.html / JS `index-DdMUI8O7.js`（130309 B）/ CSS `index-D55ilY8h.css`（13898 B）/ sitemap.xml / robots.txt **5/5 与本地 dist 逐字节一致**；线上 JS bundle 含 `#/notes`、`function-definition-vs-call`、marked、sanitize、highlight |
 
 ---
 
