@@ -1,6 +1,13 @@
 """接口行为测试：端点齐全、过滤、分页边界、404、错误结构、CORS、请求 id、500 不泄漏堆栈。
 
 契约（「数据对不对」）在 tests/contract/ 里；这里管「接口的行为对不对」。
+
+**D41：内容事实（有几篇、哪几个 slug、谁排前面）一律从契约 fixture 推导，不写字面量。**
+这些数字与名单是 `web/content/**` 的属性，不是接口的属性：写死的话，作者加一篇笔记
+就会让「接口行为」测试变红 —— 红的是「写作变了」，排查方向却被指到接口身上。
+所以这里比的是「接口算出来的 == Node 算出来的」（`fixture_js.json`），内容怎么长都不影响这一层。
+与内容无关的**规则**照旧写死：状态码、错误体形状、limit 默认/上限/越界 422、404 的 code、
+tag 的精确与大小写敏感；「缺省字段补 null」另由 tests/test_content_rules.py 的合成内容兜底。
 """
 
 from __future__ import annotations
@@ -22,6 +29,23 @@ EXPECTED_PATHS = {
 
 HEX32 = re.compile(r"^[0-9a-f]{32}$")
 
+# Profile 里「内容可以不写」的字段（schemas.Profile 的默认 None 那一组）。
+# 这是**形状**约定，不是内容事实，所以写在这里；它们的值是 null 由上面那条测试验。
+OPTIONAL_PROFILE_KEYS = ("location", "resume")
+
+
+def _slugs(items: list[dict]) -> list[str]:
+    """只取 slug —— 顺序断言用它，读起来也比列表推导清楚。"""
+    return [item["slug"] for item in items]
+
+
+def _fixture_tags(js_fixture: dict) -> list[str]:
+    """契约 fixture 里出现过的所有标签（去重后排序）。
+
+    用它当 tag 查询的参数：「查什么」也来自内容，不写死 `tag=Python` 这种具体值。
+    """
+    return sorted({tag for project in js_fixture["projects"] for tag in project["tags"]})
+
 
 # --------------------------------------------------------------- 端点齐全
 
@@ -35,7 +59,7 @@ def test_openapi_exposes_exactly_seven_endpoints(client) -> None:
         assert set(operations) == {"get"}, f"{path} 出现了非 GET 方法：{set(operations)}"
 
 
-def test_health_reports_dependency_status(client) -> None:
+def test_health_reports_dependency_status(client, js_fixture) -> None:
     response = client.get("/api/v1/health")
     assert response.status_code == 200
 
@@ -44,8 +68,9 @@ def test_health_reports_dependency_status(client) -> None:
     assert body["env"] == "test"
     content = body["dependencies"]["content"]
     assert content["status"] == "ok"
-    assert content["projects"] == 4
-    assert content["notes"] == 3
+    # 计数从契约 fixture 推导（D41）：体检单报的就是「读到了几篇」
+    assert content["projects"] == len(js_fixture["projects"])
+    assert content["notes"] == len(js_fixture["notes"])
     assert body["request_id"] == response.headers["X-Request-Id"]
 
 
@@ -114,51 +139,77 @@ def test_health_hides_path_in_production_even_when_content_is_broken(tmp_path) -
 # --------------------------------------------------------------- 六个内容端点
 
 
-def test_profile(client) -> None:
+def test_profile(client, js_fixture) -> None:
+    """字段值 = 契约 fixture；契约里省略的可选字段补 null，且不多带别的键。"""
     body = client.get("/api/v1/profile").json()
-    assert body["name"] == "周同学"
-    assert body["education"] == "专科在读（大一）"
-    assert body["skills"][0]["title"] == "后端开发"
+    expected = js_fixture["profile"]
+
+    for key, value in expected.items():
+        assert body[key] == value, f"{key} 与契约 fixture 不一致"
+
+    # 内容里没写的可选字段：补 null，而不是省略键（前端不用先判 'location' in p）
+    for key in OPTIONAL_PROFILE_KEYS:
+        if key not in expected:
+            assert key in body and body[key] is None, key
+
+    assert set(body) == set(expected) | {k for k in OPTIONAL_PROFILE_KEYS if k not in expected}
 
 
-def test_projects_default_order_and_shape(client) -> None:
+def test_projects_default_order_and_shape(client, js_fixture) -> None:
+    """顺序 = 构建期定好的顺序（fixture 就是这个顺序）；可选字段缺省补 null。"""
     body = client.get("/api/v1/projects").json()
-    assert body["total"] == 4
+    expected = js_fixture["projects"]
+
+    assert body["total"] == len(expected)
     assert body["limit"] == 20 and body["offset"] == 0
-    # 顺序 = 构建期定好的顺序：order 升序
-    assert [p["slug"] for p in body["items"]] == [
-        "personal-portfolio",
-        "notes-collection",
-        "data-toolkit",
-        "api-service",
-    ]
-    # 可选字段缺省补 null（前端不用先判 'repo' in p）。
-    # 样本换成 notes-collection —— api-service 交付后补上了 repo/live，
-    # 如今没写这两个字段的项目只剩它一个。
-    first = body["items"][0]
-    assert first["repo"] and first["live"] and first["featured"] is True
-    assert body["items"][1]["repo"] is None and body["items"][1]["live"] is None
-    # 写了的就是字符串，不是空串
-    assert body["items"][3]["repo"] and body["items"][3]["live"]
+    assert _slugs(body["items"]) == _slugs(expected)
+
+    # 可选字段：内容里写了 → 非空字符串；没写 → 补 null。
+    # （「内容里确实没写」这个前提由 test_content_rules.py 的合成内容单独钉住 ——
+    #   真实内容哪天把链接补全了，这里就会没有样本可覆盖，合成内容不会。）
+    by_slug = {item["slug"]: item for item in body["items"]}
+    for project in expected:
+        item = by_slug[project["slug"]]
+        for key in ("repo", "live"):
+            if key in project:
+                assert isinstance(item[key], str) and item[key], (project["slug"], key)
+            else:
+                assert key in item and item[key] is None, (project["slug"], key)
+        if "featured" in project:
+            assert item["featured"] is project["featured"], project["slug"]
+        else:
+            assert item["featured"] is None, project["slug"]
 
 
-def test_projects_status_filter(client) -> None:
-    body = client.get("/api/v1/projects?status=done").json()
-    assert body["total"] == 3
-    assert {p["slug"] for p in body["items"]} == {
-        "personal-portfolio",
-        "data-toolkit",
-        "api-service",
-    }
+def test_projects_status_filter(client, js_fixture) -> None:
+    """status 是枚举，过滤 = 全等匹配。三个取值各查一次，名单从 fixture 推导。"""
+    for status in ("done", "wip", "planned"):
+        expected = {p["slug"] for p in js_fixture["projects"] if p["status"] == status}
+        body = client.get(f"/api/v1/projects?status={status}").json()
+        assert body["total"] == len(expected), status
+        assert {p["slug"] for p in body["items"]} == expected, status
 
 
-def test_projects_tag_filter_is_exact_and_case_sensitive(client) -> None:
-    hit = client.get("/api/v1/projects?tag=Python").json()
-    assert hit["total"] == 2
-    assert {p["slug"] for p in hit["items"]} == {"data-toolkit", "api-service"}
+def test_projects_tag_filter_is_exact_and_case_sensitive(client, js_fixture) -> None:
+    """tag 过滤是**全等**匹配：不做包含、也不折叠大小写。
 
-    # 未知标签 / 大小写不同：返回空列表，不是错误
-    miss = client.get("/api/v1/projects?tag=python")
+    每个真实标签都查两遍 —— 原样一次、改成大写一次。第二遍就是大小写敏感的证明：
+    期望值按「内容里是否真的写着这个大写标签」算；接口要是折叠了大小写，
+    就会把只写了小写标签的项目也吐出来，两边立刻对不上。
+    """
+    projects = js_fixture["projects"]
+    tags = _fixture_tags(js_fixture)
+    assert tags, "契约 fixture 里没有标签，这条测试无从验证"
+
+    for tag in tags:
+        for query in (tag, tag.upper()):
+            body = client.get("/api/v1/projects", params={"tag": query}).json()
+            expected = {p["slug"] for p in projects if query in p["tags"]}
+            assert body["total"] == len(expected), query
+            assert {p["slug"] for p in body["items"]} == expected, query
+
+    # 未知标签：空列表 + 200，不是错误（顺带把信封形状与分页默认值钉一次）
+    miss = client.get("/api/v1/projects?tag=__no_such_tag__")
     assert miss.status_code == 200
     assert miss.json() == {
         "items": [],
@@ -169,54 +220,88 @@ def test_projects_tag_filter_is_exact_and_case_sensitive(client) -> None:
     }
 
 
-def test_projects_tag_and_status_combine(client) -> None:
-    body = client.get("/api/v1/projects?tag=Python&status=done").json()
-    assert [p["slug"] for p in body["items"]] == ["data-toolkit", "api-service"]
+def test_projects_tag_and_status_combine(client, js_fixture) -> None:
+    """两个过滤条件是**交集**（AND），不是「命中任一」。"""
+    projects = js_fixture["projects"]
+    # 取「出现次数最多」的标签，交集最可能有内容；具体是哪个由 fixture 决定
+    tag = max(_fixture_tags(js_fixture), key=lambda t: sum(t in p["tags"] for p in projects))
+
+    body = client.get("/api/v1/projects", params={"tag": tag, "status": "done"}).json()
+    expected = {
+        p["slug"] for p in projects if tag in p["tags"] and p["status"] == "done"
+    }
+    assert {p["slug"] for p in body["items"]} == expected
+    assert body["total"] == len(expected)
 
 
-def test_project_detail(client) -> None:
-    body = client.get("/api/v1/projects/personal-portfolio").json()
-    assert body["slug"] == "personal-portfolio"
-    assert body["live"] == "https://mucheng-zzb.github.io/personal-portfolio/"
-    assert "body" not in body  # 项目不带正文（与构建期一致）
+def test_project_detail(client, js_fixture) -> None:
+    """详情 = 该项目的契约 fixture 内容；项目不带正文（与构建期一致）。"""
+    for expected in js_fixture["projects"]:
+        body = client.get(f"/api/v1/projects/{expected['slug']}").json()
+
+        for key, value in expected.items():
+            assert body[key] == value, (expected["slug"], key)
+        # 契约里没写的可选字段补 null
+        for key in ("repo", "live", "cover", "featured"):
+            if key not in expected:
+                assert key in body and body[key] is None, (expected["slug"], key)
+        assert "body" not in body, expected["slug"]
 
 
-def test_notes_list_has_no_body_but_detail_does(client) -> None:
+def test_notes_list_has_no_body_but_detail_does(client, js_fixture) -> None:
+    expected = js_fixture["notes"]
+
     listed = client.get("/api/v1/notes").json()
-    assert listed["total"] == 3
-    assert "body" not in listed["items"][0]
-    # 三篇同一天，标题按码点序兜底：'p'(0x70) < 函(U+51FD) < 变(U+53D8)
-    assert [n["slug"] for n in listed["items"]] == [
-        "print-is-not-return",
-        "function-definition-vs-call",
-        "assignment-is-not-copy",
-    ]
+    assert listed["total"] == len(expected)
+    assert _slugs(listed["items"]) == _slugs(expected)
 
-    detail = client.get("/api/v1/notes/function-definition-vs-call").json()
-    assert "def greet()" in detail["body"]
-    assert detail["body"].startswith("一句话结论")
+    # 列表不含正文（ARCHITECTURE §6），其余字段与内容一致；
+    # 内容里没写的可选字段（draft）在列表里补 null。
+    # 注意别用「整条 dict 相等」来比：内容没写 draft 时 fixture 里根本没这个键，
+    # 而响应模型会补一个 null，两边形状不同 —— 那不是缺陷，是这一层刻意的选择。
+    for item, note in zip(listed["items"], expected):
+        assert "body" not in item
+        for key, value in note.items():
+            if key != "body":
+                assert item[key] == value, (note["slug"], key)
+        if "draft" not in note:
+            assert item["draft"] is None, note["slug"]
+
+    # 详情带正文，且与契约 fixture 逐字一致（渲染用的就是这份 Markdown）
+    for note in expected:
+        detail = client.get(f"/api/v1/notes/{note['slug']}").json()
+        assert detail["body"] == note["body"], note["slug"]
 
 
-def test_now(client) -> None:
+def test_now(client, js_fixture) -> None:
+    """时间线逐条一致：顺序与字段都来自内容（fixture），不写死第一天是哪条。"""
     body = client.get("/api/v1/now").json()
-    assert isinstance(body, list) and len(body) == 4
-    assert {item["status"] for item in body} == {"doing", "planned"}
-    assert body[0]["date"] == "2026-09-05"
+    expected = js_fixture["now"]
+
+    assert body == expected
+    # status 只能取枚举里的值（JS 侧校验器与 Python 校验器都按同一张词表放行）
+    assert {item["status"] for item in body} <= {"doing", "planned", "done"}
 
 
 # --------------------------------------------------------------- 分页边界
 
 
-def test_pagination_slices_and_reports_true_total(client) -> None:
-    body = client.get("/api/v1/projects?limit=2&offset=1").json()
-    assert body["total"] == 4  # total 是分页【前】的数量
-    assert [p["slug"] for p in body["items"]] == ["notes-collection", "data-toolkit"]
+def test_pagination_slices_and_reports_true_total(client, js_fixture) -> None:
+    """分页只是切片：total 始终是**分页前**的数量，items 是切出来的那一段。"""
+    expected = _slugs(js_fixture["projects"])
+
+    # 逐个边界试：第一页、从中间切、一次取满上限、切到尾巴上
+    for limit, offset in ((1, 0), (2, 1), (100, 0), (3, 2)):
+        body = client.get(f"/api/v1/projects?limit={limit}&offset={offset}").json()
+        assert _slugs(body["items"]) == expected[offset : offset + limit], (limit, offset)
+        assert body["total"] == len(expected), (limit, offset)
+        assert body["limit"] == limit and body["offset"] == offset, (limit, offset)
 
 
-def test_pagination_offset_past_the_end_is_not_an_error(client) -> None:
+def test_pagination_offset_past_the_end_is_not_an_error(client, js_fixture) -> None:
     body = client.get("/api/v1/projects?offset=99").json()
     assert body["items"] == []
-    assert body["total"] == 4
+    assert body["total"] == len(js_fixture["projects"])
 
 
 def test_limit_out_of_range_is_422(client) -> None:
