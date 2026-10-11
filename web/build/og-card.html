@@ -1,0 +1,146 @@
+<!doctype html>
+<!--
+  ============================================================
+  og:image 的源文件 —— 它【不进】构建产物，只用来生成 web/public/images/og.png
+  ============================================================
+
+  分享到微信 / 推特 / 飞书时那张 1200×630 的缩略图，就是这份 HTML 的截图。
+  为什么不直接画一张图：截图可复现、以后改文案不用重新学画图工具，
+  而且和站点的配色是同一套值（--bg / --accent-1 / --accent-2）。
+
+  重新生成（在 web/ 下执行；Chrome 路径按本机情况替换）：
+
+    "/c/Program Files/Google/Chrome/Application/chrome.exe" \
+      --headless=new --disable-gpu --hide-scrollbars \
+      --window-size=1200,630 \
+      --screenshot="$(pwd -W)/public/images/og.png" \
+      "file:///$(pwd -W)/build/og-card.html"
+
+  尺寸必须是 1200×630 —— og:image 的推荐比例（1.91:1），
+  微信和推特不按这个比例给，缩略图会被裁得很难看。
+
+  【注意】下面的姓名与定位是从 web/content/profile.json 抄过来的。
+  改名字或改定位之后，记得把这里同步一遍再重新截图，
+  否则分享出去的卡片会和你现在的说法不一致。
+  ============================================================
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>OG card</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #0a0b10;
+        color: #e9ecf3;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+          'Noto Sans SC', sans-serif;
+      }
+
+      /* 背景装饰：网格 + 两团色光，和站点首屏同一套观感 */
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 64px 64px;
+        -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000, transparent 75%);
+      }
+      .glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(110px);
+      }
+      .glow--1 {
+        width: 560px;
+        height: 560px;
+        top: -200px;
+        left: -80px;
+        background: rgba(79, 124, 255, 0.55);
+      }
+      .glow--2 {
+        width: 480px;
+        height: 480px;
+        top: 90px;
+        right: -150px;
+        background: rgba(168, 85, 247, 0.45);
+      }
+
+      .card {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 88px;
+      }
+
+      .eyebrow {
+        font-size: 24px;
+        letter-spacing: 0.18em;
+        color: #98a2b6;
+        margin-bottom: 20px;
+      }
+
+      .name {
+        font-size: 104px;
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #ffffff 15%, #9db4ff 55%, #c4a2ff 90%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 24px;
+      }
+
+      .tagline {
+        font-size: 32px;
+        line-height: 1.5;
+        color: #98a2b6;
+        max-width: 880px;
+      }
+
+      .rule {
+        width: 96px;
+        height: 6px;
+        border-radius: 3px;
+        margin-bottom: 32px;
+        background: linear-gradient(135deg, #4f7cff, #a855f7);
+      }
+
+      .url {
+        position: absolute;
+        left: 88px;
+        bottom: 52px;
+        font-size: 22px;
+        color: #6b7488;
+        letter-spacing: 0.02em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="grid"></div>
+    <div class="glow glow--1"></div>
+    <div class="glow glow--2"></div>
+
+    <div class="card">
+      <p class="eyebrow">个人主页 · PORTFOLIO</p>
+      <h1 class="name">周同学</h1>
+      <div class="rule"></div>
+      <p class="tagline">大一在读，在学后端与 AI，想做出自己的第一个作品。</p>
+      <p class="url">mucheng-zzb.github.io/personal-portfolio</p>
+    </div>
+  </body>
+</html>

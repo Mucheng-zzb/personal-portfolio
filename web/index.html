@@ -15,6 +15,48 @@
     <!-- 手机上地址栏 / 状态栏的颜色。由 src/ui/theme.js 在切主题时同步更新 -->
     <meta name="theme-color" content="#0a0b10" />
 
+    <!-- 本页的规范地址。hash 路由的各个视图（#/notes 等）都指向这一个 URL ——
+         爬虫看不见 fragment，逐条写 canonical 没有意义（同 sitemap 的理由）。 -->
+    <link rel="canonical" href="https://mucheng-zzb.github.io/personal-portfolio/" />
+
+    <!-- ============ 社交分享卡片（Open Graph） ============
+         微信 / 推特 / 飞书 / QQ 抓的都是这一组。少了它，分享出去就是一行灰字。
+
+         og:url 与 og:image 必须是【绝对地址】—— 抓取方不在你的页面上，
+         解析不了相对路径。所以这里写死了站点源，和 build/content-plugin.js 的
+         SITE_ORIGIN 是同一个值：站点换域名时两处都要改。
+
+         og:image 是 1200×630（1.91:1），源文件在 web/build/og-card.html。 -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="周同学 · 个人主页" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content="周同学 · 个人主页" />
+    <meta
+      property="og:description"
+      content="周同学的个人主页 —— 大一在读，在学后端与 AI，记录学习过程和做过的项目。"
+    />
+    <meta property="og:url" content="https://mucheng-zzb.github.io/personal-portfolio/" />
+    <meta
+      property="og:image"
+      content="https://mucheng-zzb.github.io/personal-portfolio/images/og.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="周同学的个人主页：大一在读，在学后端与 AI" />
+
+    <!-- Twitter / X 不读 og:*，它只认 twitter:*（没有这一段，卡片就是一行纯文字） -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="周同学 · 个人主页" />
+    <meta
+      name="twitter:description"
+      content="周同学的个人主页 —— 大一在读，在学后端与 AI，记录学习过程和做过的项目。"
+    />
+    <meta
+      name="twitter:image"
+      content="https://mucheng-zzb.github.io/personal-portfolio/images/og.png"
+    />
+    <meta name="twitter:image:alt" content="周同学的个人主页：大一在读，在学后端与 AI" />
+
     <!-- 网页图标（emoji 版本） -->
     <link
       rel="icon"

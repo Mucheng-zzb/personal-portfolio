@@ -49,13 +49,17 @@ personal-portfolio/
 │   │   └── projects/*.md     项目卡，一个文件一张
 │   ├── build/              构建期内容管线（只在构建时跑，不进浏览器）
 │   │   ├── content-schema.js  纯函数校验，可单测
-│   │   └── content-plugin.js  Vite 插件：虚拟模块 + 校验失败 + dev 监听
+│   │   ├── content-plugin.js  Vite 插件：虚拟模块 + 校验失败 + dev 监听
+│   │   └── og-card.html       分享卡片（og:image）的源文件，用它截图生成 og.png
+│   ├── public/             ★ 原样拷进 dist 根目录的静态文件（不进 JS 打包）
+│   │   ├── resume.pdf         简历 PDF —— 由 #/resume「打印成 PDF」而来
+│   │   └── images/og.png      社交分享缩略图 1200×630
 │   ├── src/                浏览器侧代码
 │   │   ├── lib/content.js     读取 virtual:content 的薄封装
-│   │   └── ui/*.js            渲染模块（profile / hero / about / skills / projects / now）
-│   ├── index.html          页面结构（只留四个首屏静态字段，其余由 JS 渲染）
-│   ├── style.css           所有样式（颜色、字体、间距、响应式）
-│   ├── script.js           入口：渲染内容 + 交互（滚动淡入、导航高亮、复制邮箱…）
+│   │   └── ui/*.js            渲染模块（profile / hero / about / skills / projects / now / notes / resume / theme）
+│   ├── index.html          页面结构（首屏静态字段 + 各路由视图的容器）
+│   ├── style.css           所有样式（设计令牌、各板块、响应式、打印）
+│   ├── script.js           入口：渲染内容 + 交互 + 路由（滚动淡入、导航高亮、复制邮箱…）
 │   ├── vite.config.js      构建配置（base 必须指向 Pages 的子路径）
 │   ├── package.json        四个脚本：dev / build / preview / check
 │   ├── node_modules/       依赖（不入库，已写进 .gitignore）
@@ -171,6 +175,22 @@ cd web && npm run build
 ```
 
 > 不想折腾 PDF：`#/resume` 那个网页版本身就是一页纸，浏览器里 Ctrl+P 也能直接印。
+
+### 分享缩略图 `og.png` 怎么更新
+
+分享到微信 / 推特时那张 1200×630 的卡片，源文件是 `web/build/og-card.html`。
+**改了姓名或定位**，在 `web/` 下重新截一张（Chrome 路径按本机情况替换）：
+
+```bash
+"/c/Program Files/Google/Chrome/Application/chrome.exe" \
+  --headless=new --disable-gpu --hide-scrollbars --window-size=1200,630 \
+  --screenshot="$(pwd -W)/public/images/og.png" \
+  "file:///$(pwd -W)/build/og-card.html"
+```
+
+`index.html` 里的 `og:*` / `twitter:*` 标签**写的是绝对地址**（抓取方不在你的页面上，
+解析不了相对路径）。以后换域名，`index.html` 的这几条和 `web/build/content-plugin.js`
+里的 `SITE_ORIGIN` 要一起改。
 
 ### 怎么改技能分组
 
