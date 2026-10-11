@@ -6,6 +6,8 @@
  *   #/               → 首页
  *   #/notes          → 笔记列表（可带 ?tag=xxx）
  *   #/notes/<slug>   → 笔记详情
+ *   #/projects       → 项目列表（可带 ?status=done&tag=Python）
+ *   #/resume         → 简历页
  *
  *   #about / #skills / #projects / #hero / #now / #contact（不带斜杠）
  *                    → 完全不管，交回浏览器原生锚点滚动
@@ -13,6 +15,14 @@
  * 为什么非要划这条线：整站导航用的就是 #about 这类锚点。路由一旦把它们也接管，
  * 轻则平滑滚动失效，重则点导航完全没反应 —— 等于把整站导航弄坏。
  * 所以 parseHash() 对这些返回 null，表示「不归我管」。
+ *
+ * 【项目筛选为什么挂在 #/projects 上，而不是给首页的 #projects 锚点挂参数】
+ * 需求写的是「筛选状态反映在 URL 查询参数上」。最直观的做法是给首页那个
+ * #projects 锚点加参数（#projects?status=done），但 hash 里 ? 之前的部分一旦
+ * 不是纯 id，浏览器就找不到同名元素，原生锚点滚动当场失效；而且路由规则要
+ * 额外开一个「不带斜杠也带参数」的口子，等于把上面那条线弄脏。
+ * 所以筛选参数挂在 #/projects 这条路由上 —— 目标（可分享的筛选视图）完全一致，
+ * 且锚点契约一个字都没动。
  *
  * 为什么用 hash 而不是 history 路由：GitHub Pages 没有服务端重写能力，
  * history 路由一刷新就 404（见 docs/ARCHITECTURE.md ADR-001）。
@@ -37,14 +47,35 @@ function splitOnce(text, sep) {
   return [text.slice(0, at), text.slice(at + 1)];
 }
 
-/** 从 '?tag=Python' 的查询串里取 tag；没有就返回 null */
-function readTag(query) {
-  if (!query) return null;
+/**
+ * 项目列表的状态筛选值。UI 上只有「全部 / 已完成 / 进行中」三档，
+ * 而 content 里的 status 有三档（done / wip / planned），
+ * 所以「进行中」= wip 或 planned，在 URL 里记作 doing。
+ */
+export const PROJECT_STATUS_FILTERS = ['done', 'doing'];
+
+/**
+ * 解析 '?status=done&tag=Python' 型查询串。
+ *
+ * 只认 tag 与 status 两个键，其余忽略 —— 认不出来的参数不该让页面出错。
+ * 值里带 & 或 = 的情况不处理（encodeURIComponent 会把它们转义掉，够用了）。
+ */
+function readQuery(query) {
+  const out = { tag: null, status: null };
+  if (!query) return out;
+
   for (const pair of query.split('&')) {
     const [key, value] = splitOnce(pair, '=');
-    if (key === 'tag' && value) return safeDecode(value);
+    if (!value) continue;
+    if (key === 'tag') out.tag = safeDecode(value);
+    else if (key === 'status') out.status = safeDecode(value);
   }
-  return null;
+
+  // status 是封闭集合：写成别的值（手改链接、或以前用过的旧值）一律当「全部」，
+  // 而不是甩一个空列表给用户。tag 是开放集合，认不出来的标签空列表本身就是正确答案。
+  if (!PROJECT_STATUS_FILTERS.includes(out.status)) out.status = null;
+
+  return out;
 }
 
 /**
@@ -54,7 +85,12 @@ function readTag(query) {
  * （验收里的 parseHash('#about') === null 就是这么测的）。
  *
  * @param {string} hash 形如 '#/notes/xxx'（带不带 # 都接受）
- * @returns {{name:'home'}|{name:'notes', tag:string|null}|{name:'note', slug:string}|null}
+ * @returns {{name:'home'}
+ *          |{name:'notes', tag:string|null}
+ *          |{name:'note', slug:string}
+ *          |{name:'projects', status:string|null, tag:string|null}
+ *          |{name:'resume'}
+ *          |null}
  */
 export function parseHash(hash) {
   const raw = String(hash ?? '');
@@ -70,9 +106,18 @@ export function parseHash(hash) {
 
   if (segments.length === 0) return { name: 'home' }; // '#/' 或 '#/?...'
 
-  if (segments[0] === 'notes') {
-    if (segments.length === 1) return { name: 'notes', tag: readTag(queryPart) };
-    if (segments.length === 2) return { name: 'note', slug: safeDecode(segments[1]) };
+  const query = readQuery(queryPart);
+
+  if (segments.length === 1) {
+    if (segments[0] === 'notes') return { name: 'notes', tag: query.tag };
+    if (segments[0] === 'projects') {
+      return { name: 'projects', status: query.status, tag: query.tag };
+    }
+    if (segments[0] === 'resume') return { name: 'resume' };
+  }
+
+  if (segments[0] === 'notes' && segments.length === 2) {
+    return { name: 'note', slug: safeDecode(segments[1]) };
   }
 
   // 其它 #/... 不认识的，回落到首页，不报错、不留白屏

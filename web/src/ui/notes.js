@@ -68,7 +68,7 @@ export function renderNotesList(container, notes, { activeTag = null } = {}) {
   const all = notes || [];
 
   if (!all.length) {
-    render(container, el('p', { class: 'notes-empty', text: '还没有笔记。' }));
+    render(container, el('p', { class: 'empty-note', text: '还没有笔记。' }));
     return;
   }
 
@@ -76,7 +76,7 @@ export function renderNotesList(container, notes, { activeTag = null } = {}) {
   const children = [tagFilter(all, activeTag)];
 
   if (!filtered.length) {
-    children.push(el('p', { class: 'notes-empty', text: `没有带「${activeTag}」标签的笔记。` }));
+    children.push(el('p', { class: 'empty-note', text: `没有带「${activeTag}」标签的笔记。` }));
   } else {
     children.push(
       el(
@@ -108,7 +108,7 @@ export function renderNoteDetail(container, notes, slug) {
   // 未知 slug 要给出明确结果，不能白屏（比如手工改坏了 URL）
   if (index === -1) {
     render(container, [
-      el('p', { class: 'notes-empty', text: '没有这篇笔记，可能链接写错了。' }),
+      el('p', { class: 'empty-note', text: '没有这篇笔记，可能链接写错了。' }),
       el('p', { class: 'note__back' }, [backLink]),
     ]);
     return;
@@ -178,7 +178,7 @@ export function renderRecentNotes(container, notes, limit = 3) {
   const recent = (notes || []).slice(0, limit);
 
   if (!recent.length) {
-    render(container, el('p', { class: 'notes-empty', text: '还没有笔记。' }));
+    render(container, el('p', { class: 'empty-note', text: '还没有笔记。' }));
     return;
   }
 
@@ -188,7 +188,7 @@ export function renderRecentNotes(container, notes, limit = 3) {
       { class: 'notes-list notes-list--recent' },
       recent.map((note) => noteItem(note, { withReadingTime: false })),
     ),
-    el('p', { class: 'notes-more' }, [
+    el('p', { class: 'more-link' }, [
       el('a', { class: 'link', href: '#/notes', text: '查看全部 →' }),
     ]),
   ]);

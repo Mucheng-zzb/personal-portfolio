@@ -1,9 +1,10 @@
 /* ============================================================
    个人主页 —— 入口脚本
    ------------------------------------------------------------
-   这个文件一共做 7 件事，每件事都是一个独立的函数：
+   这个文件一共做 8 件事，每件事都是一个独立的函数：
      renderContent()  —— 把 web/content/ 的数据渲染进页面（v0.2-C 起）
-     initRouter()     —— hash 路由：在首页与笔记视图之间切换（v0.3-A 起）
+     initRouter()     —— hash 路由：在首页 / 笔记 / 项目三个视图间切换（v0.4-A 起）
+     initTheme()      —— 明暗主题切换按钮（v0.4-A 起）
      initReveal()     —— 内容滚动到视野里时淡入
      initActiveNav()  —— 高亮当前所在的导航项
      initYear()       —— 自动更新页脚年份
@@ -24,7 +25,7 @@ import { renderProfile } from './src/ui/profile.js';
 import { renderHeroChips } from './src/ui/hero.js';
 import { renderAbout } from './src/ui/about.js';
 import { renderSkills } from './src/ui/skills.js';
-import { renderProjects } from './src/ui/projects.js';
+import { renderProjects, renderProjectList } from './src/ui/projects.js';
 import { renderNow } from './src/ui/now.js';
 import { renderNotesList, renderNoteDetail, renderRecentNotes } from './src/ui/notes.js';
 import { initTheme } from './src/ui/theme.js';
@@ -58,39 +59,81 @@ function renderContent() {
 }
 
 /* ============================================================
-   0.6 路由与视图切换（v0.3-A）
+   0.6 路由与视图切换（v0.3-A 起，v0.4-A 加了项目列表）
    ------------------------------------------------------------
-   只接管以 #/ 开头的 hash：#/ 、#/notes 、#/notes/<slug>。
-   #about / #hero 这类【不带斜杠】的锚点完全不归路由管，仍旧走浏览器
+   只接管以 #/ 开头的 hash：#/ 、#/notes、#/notes/<slug>、#/projects。
+   #about / #projects 这类【不带斜杠】的锚点完全不归路由管，仍旧走浏览器
    原生平滑滚动 —— 这条线在 src/router.js 的 parseHash() 里划死。
 
    视图切换靠 hidden 属性：
-     首页 = <main>（原本就在的节点，一个子节点都不动）
-     笔记 = #notesView（新增的节点，默认 hidden）
-   这样五个现有板块的 DOM 完全不受影响。
+     首页   = <main>（原本就在的节点，一个子节点都不动）
+     笔记   = #notesView（v0.3-A 加的，默认 hidden）
+     项目   = #projectsView（v0.4-A 加的，默认 hidden）
+   这样首页那五个板块的 DOM 完全不受影响。
+
+   加新视图只有三步：在 index.html 里加一个默认 hidden 的容器、
+   在下面的 VIEW_ELEMENT 里登记、在 applyRoute() 里渲染它。
    ============================================================ */
 
-/** 当前是否停在笔记视图。initActiveNav 要用它判断要不要管导航高亮 */
-let inNotesView = false;
+/** 路由视图名 → 容器 id。首页不在此列：它就是 <main> 本身 */
+const VIEW_ELEMENT = {
+  notes: 'notesView',
+  projects: 'projectsView',
+};
 
-/** 在笔记视图里点亮「笔记」那一项；回首页时清掉，交给 initActiveNav 重新判定 */
-function setNotesNavActive(active) {
-  const link = document.querySelector('.nav__link[href="#/notes"]');
-  if (link) link.classList.toggle('is-active', active);
+/**
+ * 路由视图 → 切换过去时要「点亮」的导航项。
+ * 首页没有条目：那里的高亮是按滚动位置算的（见 initActiveNav）。
+ *
+ * 项目列表点亮的仍是导航里那个「项目」锚点（href="#projects"）：
+ * 导航保持「整站都是锚点」的形状不变，只有笔记是路由链接。
+ */
+const NAV_HREF_BY_VIEW = {
+  notes: '#/notes',
+  projects: '#projects',
+};
+
+/** 当前停在哪个视图。initActiveNav 的滚动补丁要用它判断该不该管导航高亮 */
+let activeView = 'home';
+
+/**
+ * 点亮导航项。
+ *
+ * 规矩：只要在路由视图里（非首页），锚点型导航项一律不亮 —— 首页那五个板块
+ * 此刻根本不在页面上，让它们亮着是假的。首页视图下则完全交给 initActiveNav。
+ */
+function setNavActive(view) {
+  const wanted = NAV_HREF_BY_VIEW[view] ?? null;
+
+  document.querySelectorAll('.nav__link').forEach((link) => {
+    const href = link.getAttribute('href');
+
+    // 首页视图下，锚点型的交给 initActiveNav 按滚动位置决定
+    if (view === 'home' && !href.startsWith('#/')) return;
+
+    link.classList.toggle('is-active', href === wanted);
+  });
 }
 
-function showHomeView() {
+/** 只显示 name 对应的那个视图，其余收起。name 取值：'home' | 'notes' | 'projects' */
+function showView(name) {
   const main = document.querySelector('main');
-  const notesView = document.getElementById('notesView');
-  if (main) main.hidden = false;
-  if (notesView) notesView.hidden = true;
-  inNotesView = false;
-  setNotesNavActive(false);
+  if (!main) return;
+
+  main.hidden = name !== 'home';
+
+  for (const [view, id] of Object.entries(VIEW_ELEMENT)) {
+    const box = document.getElementById(id);
+    if (box) box.hidden = view !== name;
+  }
+
+  activeView = name;
+  setNavActive(name);
 }
 
 /**
  * 自己滚到某个锚点。
- * 只在「刚从笔记视图切回首页」时调用 —— 那时 <main> 还藏着，
+ * 只在「刚从其它视图切回首页」时调用 —— 那时 <main> 还藏着，
  * 隐藏元素没有布局盒，浏览器的原生锚点滚动会静默失败，所以要先把它放出来再补滚一次。
  * 在首页点锚点时【不】走这里：原生平滑滚动才是我们要的效果，插手反而会打架。
  */
@@ -109,43 +152,52 @@ function scrollToAnchor(hash) {
 
 /** 路由 → 视图。route 为 null 表示「这次 hash 不归路由管」（多半是个锚点）。 */
 function applyRoute(route, hash) {
-  const main = document.querySelector('main');
-  const notesView = document.getElementById('notesView');
-  if (!main || !notesView) return;
+  if (!document.querySelector('main')) return;
 
   if (route === null) {
-    if (inNotesView) {
-      showHomeView();
+    // 锚点：只有当刚才停在别的视图时才需要处理（要先放出首页才滚得动）
+    if (activeView !== 'home') {
+      showView('home');
       scrollToAnchor(hash);
     }
     return;
   }
 
   if (route.name === 'home') {
-    showHomeView();
+    showView('home');
     return;
   }
 
-  // ---- 笔记视图 ----
-  main.hidden = true;
-  notesView.hidden = false;
-  inNotesView = true;
-  setNotesNavActive(true);
+  // 换视图后回到顶部，否则会停在上一个视图的滚动位置
+  const goToTop = () => window.scrollTo(0, 0);
 
-  const listEl = document.getElementById('notesListView');
-  const detailEl = document.getElementById('noteDetailView');
-  const isList = route.name === 'notes';
-  if (listEl) listEl.hidden = !isList;
-  if (detailEl) detailEl.hidden = isList;
+  if (route.name === 'notes' || route.name === 'note') {
+    showView('notes');
 
-  if (isList) {
-    renderNotesList(listEl, notes, { activeTag: route.tag });
-  } else {
-    renderNoteDetail(detailEl, notes, route.slug);
+    const listEl = document.getElementById('notesListView');
+    const detailEl = document.getElementById('noteDetailView');
+    const isList = route.name === 'notes';
+    if (listEl) listEl.hidden = !isList;
+    if (detailEl) detailEl.hidden = isList;
+
+    if (isList) {
+      renderNotesList(listEl, notes, { activeTag: route.tag });
+    } else {
+      renderNoteDetail(detailEl, notes, route.slug);
+    }
+
+    goToTop();
+    return;
   }
 
-  // 换视图后回到顶部，否则会停在上一个视图的滚动位置
-  window.scrollTo(0, 0);
+  if (route.name === 'projects') {
+    showView('projects');
+    renderProjectList(document.getElementById('projectListView'), projects, {
+      status: route.status,
+      tag: route.tag,
+    });
+    goToTop();
+  }
 }
 
 /**
@@ -248,9 +300,9 @@ function initActiveNav() {
   window.addEventListener(
     'scroll',
     () => {
-      // 笔记视图下 <main> 是隐藏的，页面上根本没有这些板块，
+      // 非首页视图下 <main> 是隐藏的，页面上根本没有这些板块，
       // 这条补丁会误把「联系」点亮，所以直接跳过。
-      if (inNotesView) return;
+      if (activeView !== 'home') return;
 
       const atBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 4;
       if (atBottom) setActive(sections[sections.length - 1].id);

@@ -220,8 +220,12 @@
           <h2 class="section__title">项目</h2>
           <p class="section__lead">目前作品还不多，先把已经做完的放上来，其他的慢慢填。</p>
 
-          <!-- → web/content/projects/*.md，一张卡一个文件 -->
-          <div class="projects" id="projectsList"></div>
+          <!-- → web/content/projects/*.md，一张卡一个文件。
+               这一节只展示精选（featured 优先，最多 4 张），
+               想看全部/筛选请走 #/projects 列表页（链接由 JS 渲染在下方）。
+               注意这里【不带 .projects 类】：网格容器由 JS 生成在内部，
+               否则「查看全部项目 →」会被当成一个网格单元。 -->
+          <div id="projectsList"></div>
         </div>
       </section>
 
@@ -315,6 +319,26 @@
           <!-- 列表与详情二选一显示：路由切换时由 script.js 设置 hidden -->
           <div id="notesListView"></div>
           <div id="noteDetailView" hidden></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ 项目列表视图（v0.4-A） ============
+         和笔记视图同一套机制：默认 hidden，路由切到 #/projects 时才显示，
+         并把 <main> 藏起来。筛选（状态 / 标签）由 JS 渲染成链接，
+         参数写在 hash 里（#/projects?status=done&tag=Python），刷新后还在。
+
+         关于 h1：视图容器里各有一个 <h1>，加上首屏那个 <h1 id="heroName">，
+         DOM 里其实有三个 —— 但同一时刻只有一个可见（其余在 hidden 容器里，
+         不在无障碍树中），所以任意时刻页面上都只有一个 h1。 -->
+    <div id="projectsView" hidden>
+      <section class="section">
+        <div class="container">
+          <p class="section__eyebrow">/ Projects</p>
+          <h1 class="section__title">项目</h1>
+          <p class="section__lead">按状态或标签筛一筛，筛选结果就在地址栏里，可以直接复制分享。</p>
+
+          <div id="projectListView"></div>
         </div>
       </section>
     </div>

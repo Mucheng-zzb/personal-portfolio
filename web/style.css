@@ -747,6 +747,20 @@ html.theme-light .theme-toggle__sun {
   border-color: rgba(79, 124, 255, 0.3);
 }
 
+/* 封面图。aspect-ratio 提前把高度占住，图片没加载完也不会抖（CLS）。
+   具体比例由这里定，content 里只写一个 cover 路径，不用额外标尺寸。 */
+.project__cover {
+  display: block;
+  margin: -4px 0 18px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.project__cover img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
 .project__head {
   display: flex;
   align-items: center;
@@ -977,10 +991,12 @@ html.theme-light .theme-toggle__sun {
   color: var(--text-muted);
 }
 
-.notes-more {
+/* 这两个是【公用】的，笔记列表和项目列表都在用
+   （名字里不带 notes 就是为此；改样式前先确认两个调用方都还能看） */
+.more-link {
   margin-top: 18px;
 }
-.notes-empty {
+.empty-note {
   padding: 8px 0 4px;
   color: var(--text-muted);
 }
