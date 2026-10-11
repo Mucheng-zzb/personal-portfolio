@@ -162,6 +162,7 @@ npm run dev     # 启动开发服务器
 
 ```bash
 # ① 起本地预览（另开一个终端）——注意用 /personal-portfolio/ 子路径打开，和线上一致
+#    端口以它实际打印的为准：4173 被别的进程占用时会自动换到 4174
 cd web && npm run preview
 
 # ② 用本机 Chrome 把 #/resume 打印成 A4 PDF（Windows 路径按需替换）
@@ -170,7 +171,14 @@ cd web && npm run preview
   --print-to-pdf="$PWD/web/public/resume.pdf" \
   "http://localhost:4173/personal-portfolio/#/resume"
 
-# ③ 确认还是一页（改动后偶尔会溢出到第二页，那就调小 style.css 打印段里的 html 字号）
+# ③ 自查：必须仍是 1 页，且正文里的 tagline 与 profile.json 一字不差
+#    （PDF 正文的 tagline 是 index.html 的静态 #resumeTagline，
+#      改文案时它和 profile.json 必须一起改，只改一边就漂移；
+#      PDF 抽出的文本在「AI」这类西文两侧会多空格，比较时要忽略空白）
+python -m pip install pypdf            # 只在第一次需要
+python -c "import json;from pypdf import PdfReader;r=PdfReader('web/public/resume.pdf');s=''.join(''.join(p.extract_text() for p in r.pages).split());d=json.load(open('web/content/profile.json',encoding='utf-8'));print('pages:',len(r.pages));print('tagline ok:', ''.join(d['tagline'].split()) in s)"
+
+# ④ 重新构建（resume.pdf 在 public/ 里，dist 里那份要靠 build 才会更新）
 cd web && npm run build
 ```
 
