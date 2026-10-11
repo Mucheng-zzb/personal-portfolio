@@ -119,10 +119,16 @@ cd api && pytest tests/contract -q
 
 `fixture_js.json` 是「Node 的输出」，不许手改；它过期了（比如改了内容）测试就该红。
 
-> ⚠️ **已知差异（唯一一处）**：标题打平时，JS 用 `localeCompare(x, 'zh')`（ICU 拼音序），
-> Python 标准库没有拼音，用的是**码点序**。它只在 `order`+`date` 同时打平时才起作用，
-> 当前内容不触发。不引入拼音库去「差不多地」模拟 —— 一个可能错的拼音实现比一个明确的差异更糟。
-> 已记进 HANDOFF；测试 `tests/test_content_rules.py::test_title_tiebreak_is_codepoint_not_pinyin` 把它钉住了。
+> **排序口径（D30）：日期与标题的比较，两侧都是码点序。**
+> 标题兜底原本 JS 用 `localeCompare(x, 'zh')`（ICU 拼音序），Python 给不出拼音 ——
+> 已**改 JS 侧**统一为码点序（`content-schema.js` 的 `compareCodePoint`）。不改的话，
+> v0.5-B 接上 API 后「实时数据」与「内置兜底」会在并列项上排出不同顺序；
+> 而且 `localeCompare` 的结果依赖运行环境的 ICU 数据版本，威胁「构建可复现」（D18）。
+> 测试 `tests/test_content_rules.py::test_title_tiebreak_matches_js_code_point_order` 把它钉住。
+>
+> 不受影响、也不打算改的一处：页面上的**标签筛选按钮**仍按 `localeCompare(x,'zh')` 排序
+> （`web/src/ui/notes.js`、`projects.js`）。那是纯展示顺序，没有后端对应物 ——
+> 标签本身由接口按内容里的原顺序返回，两边一致。
 
 另外两个刻意的选择：
 

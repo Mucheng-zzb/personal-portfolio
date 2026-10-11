@@ -333,16 +333,17 @@ NOTES_FIELDS = {
 
 
 def _cmp_title(left: str, right: str) -> int:
-    """标题升序兜底。
+    """标题升序兜底：**码点序**。
 
-    ⚠️ **已知差异（唯一一处）**：JS 用的是 `localeCompare(other, 'zh')`，
-    即 ICU 的**拼音**排序；Python 标准库没有拼音，这里用的是**码点**序。
-    例：「本站笔记合集」拼音是 ben…、「数据小工具」是 shu…，
-    ICU 判前者在前，码点（本 U+672C > 数 U+6570）判后者在前。
+    这条曾经是两边唯一的差异：JS 侧用的是 `localeCompare(x, 'zh')`（ICU 拼音序），
+    而 Python 标准库给不出「拼音」，只能给码点序。**D30 已把它统一成码点序**
+    （JS 侧改成了 `content-schema.js` 里的 `compareCodePoint`），所以现在两侧
+    执行的是同一条规则 —— 不会出现「API 的实时数据」与「构建期内置兜底」
+    在并列项上排出不同顺序。
 
-    它只在**前两个键打平**时才起作用（projects 同 order 同 date / notes 同 date），
-    当前内容不触发。不引入 pypinyin 之类的新依赖去「差不多地」模拟拼音 ——
-    一个可能错的拼音实现比一个明确的差异更糟。已记进 HANDOFF 待架构师定夺。
+    注：JS 的 `<` `>` 比的是 UTF-16 码元、Python 比的是码点，对 BMP 以内
+    （含全部常用汉字）完全一致；只有 emoji 这类增补平面字符才可能有出入，
+    真遇到时两边顺序都是确定的、只是可能不同，届时再单独定。
     """
     if left == right:
         return 0

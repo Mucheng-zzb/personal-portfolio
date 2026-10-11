@@ -266,15 +266,35 @@ const NOTES_FIELDS = {
   },
 };
 
+/**
+ * 字符串比较：**码点序**，不是 locale 序（D30）。
+ *
+ * 原来标题兜底用的是 `localeCompare(x, 'zh')`，也就是 ICU 的**拼音序**。
+ * 问题出在后端：它同样是这套规则的一份实现，但跑在 Python 上，
+ * 标准库给不出「拼音」，只能给码点序。两侧不一致的后果是可见的 ——
+ * v0.5-B 接上 API 之后，「实时数据」和「构建期内置兜底」会在并列项上排出
+ * 不同顺序，同一份内容看着像变了。
+ * 而且 localeCompare 的结果依赖运行环境的 ICU 数据版本：同一份内容在不同
+ * Node 版本上可能排出不同顺序，这威胁「构建可复现」（D18）。
+ *
+ * 统一成码点序之后，两侧是同一条规则，契约测试比的才是同一件事。
+ *
+ * 注：JS 的 `<` `>` 比的是 **UTF-16 码元**，Python 比的是**码点** ——
+ * 对 BMP 以内的字符（含全部常用汉字）两者完全一致，只有 emoji 这类
+ * 增补平面字符才可能有出入。真遇到时两边顺序都是确定的，只是可能不同，
+ * 届时再单独定（已记进 HANDOFF）。
+ */
+const compareCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
 export const MD_COLLECTIONS = {
   projects: {
     dir: 'web/content/projects',
     fields: PROJECT_FIELDS,
-    // 排序保证输出确定：order 升序 → date 降序 → title 升序
+    // 排序保证输出确定：order 升序 → date 降序 → title 升序（日期与标题都按码点序）
     sort: (a, b) =>
       a.order - b.order ||
-      String(b.date).localeCompare(String(a.date)) ||
-      String(a.title).localeCompare(String(b.title), 'zh'),
+      compareCodePoint(String(b.date), String(a.date)) ||
+      compareCodePoint(String(a.title), String(b.title)),
     filter: null,
   },
   notes: {
@@ -283,10 +303,10 @@ export const MD_COLLECTIONS = {
     // 笔记详情要渲染正文，所以这一集合把 body 一起带到前端；
     // projects 不设这个标志，负载因此逐字节不变。
     withBody: true,
-    // 排序保证输出确定：date 降序（新的在前）→ title 升序兜底
+    // 排序保证输出确定：date 降序（新的在前）→ title 升序兜底（都按码点序）
     sort: (a, b) =>
-      String(b.date).localeCompare(String(a.date)) ||
-      String(a.title).localeCompare(String(b.title), 'zh'),
+      compareCodePoint(String(b.date), String(a.date)) ||
+      compareCodePoint(String(a.title), String(b.title)),
     // 草稿在构建期就排除，永远不进产物（v0.3-A 的硬性要求）。
     // 注意：filter 在校验之前执行，所以草稿里的字段拼错不会当场报错 ——
     // 这是有意的，草稿不该受构建约束。

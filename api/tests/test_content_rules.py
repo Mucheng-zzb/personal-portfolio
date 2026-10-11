@@ -185,21 +185,23 @@ def test_only_first_level_markdown_files_are_read(temp_content_dir: Path) -> Non
 # --------------------------------------------------------------- 排序兜底
 
 
-def test_title_tiebreak_is_codepoint_not_pinyin(temp_content_dir: Path) -> None:
-    """⚠️ 本条锁的是**已知差异**，不是「正确行为」。
+def test_title_tiebreak_matches_js_code_point_order(temp_content_dir: Path) -> None:
+    """标题打平时按**码点序** —— 这是 D30 定下的、两侧共用的规则。
 
-    JS 侧用 `localeCompare(other, 'zh')`（ICU 拼音序），Python 标准库没有拼音，
-    用的是码点序。「本站笔记合集」(ben…) 拼音在前，「数据小工具」(shu…) 在后；
-    码点则是 数 U+6570 < 本 U+672C，顺序相反。
+    「本站笔记合集」(ben…) 的拼音在前，「数据小工具」(shu…) 在后，这是 ICU 的答案；
+    码点序（数 U+6570 < 本 U+672C）给出相反的顺序。D30 选了码点序，
+    JS 侧已同步改成 `compareCodePoint`（`web/build/content-schema.js`），
+    所以这个断言锁的**不再是「差异」，而是「同一条规则」**。
 
-    它只在 order + date 全打平时才出现，当前内容不触发。
-    引入拼音库去「差不多地」模拟，比一个明确的差异更糟，所以先记下来。
-    哪天架构师定了口径（比如两边都改用码点），改这一个测试就是全部的改动。
+    为什么不在契约测试里比：契约测试对的是 `web/content/projects` 里那 4 个项目，
+    而它需要「同 order 同 date」这种并列才触发，真实内容里没有 ——
+    往里加两个专为测试存在的项目就等于往用户的写作里塞东西，不能那么干。
+    所以这条由 Python 侧钉住，JS 侧由 `compareCodePoint` 的注释与代码本身钉住。
     """
     order = "status: done\ndate: 2026-10-11\ntags: [X]\nsummary: 摘要\norder: 1"
     _write_project(temp_content_dir, "pinyin-a.md", f"title: 本站笔记合集\n{order}")
     _write_project(temp_content_dir, "pinyin-b.md", f"title: 数据小工具\n{order}")
 
     slugs = [p["slug"] for p in store_for(temp_content_dir).list_projects()]
-    # 码点序：数(6570) < 本(672C) → pinyin-b 在前（而 ICU 拼音序会给出相反的答案）
+    # 码点序：数(6570) < 本(672C) → pinyin-b 在前（ICU 拼音序会给出相反的答案）
     assert slugs.index("pinyin-b") < slugs.index("pinyin-a")
