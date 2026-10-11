@@ -288,7 +288,7 @@ v0.2-A 的 `npm run check` 只是 `vite build` 的**占位**，**不是代码检
 **范围（做）**
 1. `api/`：**FastAPI**（Python，与你的后端/AI 方向一致）。分层：`routers/`（路由）、`services/`（业务）、`models/`（schema）、`core/`（配置、日志、错误）。配置走环境变量，`.env.example` 入库、`.env` 入 `.gitignore`。
 2. **只读 API**（数据源先用仓库里的 Markdown/JSON 解析，不依赖数据库）：
-   - `GET /api/v1/health`、`/profile`、`/projects`、`/notes`、`/notes/{slug}`、`/now`
+   - `GET /api/v1/health`、`/profile`、`/projects`、`/projects/{slug}`、`/notes`、`/notes/{slug}`、`/now`（共 7 个）
    - 统一错误格式、`X-Request-Id` 中间件、结构化日志。
    - 自动生成 **OpenAPI 文档**（`/docs`）。
 3. **CORS 白名单**：只允许 GitHub Pages 域名 + localhost。

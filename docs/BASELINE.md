@@ -198,10 +198,14 @@ CSS 3.82 KB ≈ 40 KB 预算的 **10%**，两项都仍在预算内。
 
 | 文件 | gzip | 原始字节 |
 | :--- | ---: | ---: |
-| `index.html` | 7.20 KB | 20 361 B |
-| `assets/index-zHbQBzuy.css` | 4.94 KB | 19 047 B |
-| `assets/index-rhHOB_2q.js` | 48.14 KB | 136 500 B |
-| **合计（首屏）** | **60.28 KB** | **175 908 B** |
+| `index.html` | 7.19 KB | 20 445 B |
+| `assets/index-zHbQBzuy.css` | 4.93 KB | 19 047 B |
+| `assets/index-BIq1GmEs.js` | 48.10 KB | 136 524 B |
+| **合计（首屏）** | **60.22 KB** | **176 016 B** |
+
+> 表内数字于 `509b785`（文案统一 + OG 重生成）之后复测：资产名从 `index-rhHOB_2q.js` 变为
+> `index-BIq1GmEs.js`，HTML/JS 的字节增量来自「专科在读（大一）」这次文案统一。
+> 口径仍是 Node `zlib.gzipSync`。
 
 不在首屏请求里的（单独列出，不计入合计）：
 

@@ -24,7 +24,7 @@ api/
 │   ├── routers/         # health / content / guestbook / ask
 │   ├── services/        # 业务逻辑
 │   └── models/          # Pydantic schema / SQLModel
-├── scripts/             # 生成向量索引、导出内容快照
+├── scripts/             # 生成向量索引
 ├── tests/               # pytest
 ├── requirements.txt
 ├── .env.example         # 入库；真正的 .env 在 .gitignore 里（ADR-010）

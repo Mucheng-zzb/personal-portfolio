@@ -241,7 +241,7 @@ Claude Code 在每个任务中必须遵守：
 【范围】
 1) api/ 下建立 FastAPI 项目，分层：app/core（config/logging/errors）、app/routers、app/services、app/models。
 2) 端点（前缀 /api/v1）：GET /health（含依赖状态）、/profile、/projects（支持 ?tag=&status=）、/projects/{slug}、/notes、/notes/{slug}、/now。
-3) 数据源：直接解析 web/content/**（复用 v0.3 的解析逻辑，不要重复实现），进程内缓存，内容变更后可通过 /health 或重启刷新。
+3) 数据源：直接解析 web/content/**（复用同一套规则与同一份内容：Python 侧按 web/build/content-schema.js 的字段表与排序规则重新实现，并用契约测试证明两侧一致），进程内缓存，内容变更后可通过 /health 或重启刷新。
 4) 统一错误结构 { error: { code, message, request_id } }；X-Request-Id 中间件；结构化 JSON 日志；500 不泄漏堆栈。
 5) 分页参数 limit（默认 20，最大 100）+ offset。
 6) CORS 白名单：从环境变量读取允许来源，默认包含本地开发地址与 https://mucheng-zzb.github.io。
@@ -262,7 +262,7 @@ Claude Code 在每个任务中必须遵守：
 【范围】
 1) 后端部署方案：先按 docs/ARCHITECTURE.md ADR-005 的核实清单，帮我确认当前可用的免费方案与其额度/休眠规则，再选一个落地。
 2) 提供 Dockerfile 与部署所需配置文件；所有密钥/配置走平台环境变量（至少包括 AI_ENABLED=false 与 CORS 来源）。
-3) 前端 web/src/lib/api.js：统一请求封装（超时 3s、一次重试、错误归一化），失败时回退到 v0.3 生成的内置快照，并在页脚显示'实时数据不可用'小字，控制台只打 warning。
+3) 前端 web/src/lib/api.js：统一请求封装（超时 3s、一次重试、错误归一化），失败时回退到构建产物内已有的内容数据（v0.3 的 content 模块，构建期内联；按 D5 不生成独立快照文件），并在页脚显示'实时数据不可用'小字，控制台只打 warning。
 4) 配置健康检查路径与自动部署（push 即部署）。
 5) 写一个避免冷启动影响体验的方案：前端显示骨架屏 + 说明如何配置免费定时探活（给出具体操作步骤，不要假设我知道）。
 【不做】不要为了部署引入付费项；不要把密钥写进任何配置文件。

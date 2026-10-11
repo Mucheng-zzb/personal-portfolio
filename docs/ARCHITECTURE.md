@@ -205,8 +205,7 @@ personal-portfolio/
 │   │   ├── models/               # db.py（SQLModel）/ schemas.py（Pydantic）
 │   │   └── data/                 # index.json（v0.7 向量索引）
 │   ├── scripts/
-│   │   ├── build_index.py        # 生成向量索引
-│   │   └── export_content.py     # v0.5 定：把内容导出为后端可读结构（前端不再用它做快照）
+│   │   └── build_index.py        # 生成向量索引（内容不做导出：后端直接读 web/content）
 │   ├── tests/
 │   ├── alembic/                  # v0.6 迁移
 │   ├── requirements.txt
