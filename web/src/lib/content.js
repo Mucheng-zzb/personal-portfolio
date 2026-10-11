@@ -15,5 +15,6 @@ import content from 'virtual:content';
 export const profile = content.profile;
 export const now = content.now;
 export const projects = content.projects;
+export const notes = content.notes;
 
 export default content;
