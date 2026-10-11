@@ -1,0 +1,38 @@
+# 构建上下文是【仓库根】（见 api/Dockerfile），所以这个文件必须放在仓库根。
+#
+# 它决定「哪些文件不会被打包发给 docker daemon」。
+# 少了它，每次构建都会把 web/node_modules（几百 MB、几万个文件）传一遍 ——
+# 慢，而且完全没用：镜像里只拷 api/app 与 web/content 两处（Dockerfile 里是 COPY 白名单）。
+#
+# 注意这是**速度与噪音**问题，不是安全问题：
+# 镜像内容由 Dockerfile 的 COPY 决定，拷不进去的东西不会进镜像。
+
+# 依赖与构建产物
+web/node_modules/
+web/dist/
+
+# 本地 Python 环境
+api/.venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 密钥（双保险：它们本来就不该存在于工作区，更不该进构建上下文）
+.env
+.env.*
+!.env.example
+
+# 版本控制与编辑器
+.git/
+.github/
+.review/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 文档：镜像里用不到（README 要在 GitHub 上看，不是在容器里看）
+docs/
+**.md

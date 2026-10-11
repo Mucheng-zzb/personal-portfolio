@@ -1,0 +1,168 @@
+{
+  "_note": "由 make_fixture.mjs 自动生成，请勿手改。它是 Node 跑 content-schema.js 的原始输出，契约测试拿它当 JS 侧的期望值。",
+  "_generated_by": "node api/tests/contract/make_fixture.mjs",
+  "_sources": {
+    "projects": [
+      "web/content/projects/api-service.md",
+      "web/content/projects/data-toolkit.md",
+      "web/content/projects/notes-collection.md",
+      "web/content/projects/personal-portfolio.md"
+    ],
+    "notes": [
+      "web/content/notes/function-definition-vs-call.md"
+    ],
+    "profile": "web/content/profile.json",
+    "now": "web/content/now.json"
+  },
+  "data": {
+    "profile": {
+      "name": "周同学",
+      "tagline": "专科在读（大一），在学后端与 AI，想做出自己的第一个作品。",
+      "email": "254180649@qq.com",
+      "github": "https://github.com/Mucheng-zzb",
+      "education": "专科在读（大一）",
+      "heroChips": [
+        "后端开发",
+        "AI · 数据",
+        "持续学习中"
+      ],
+      "about": [
+        "我是周同学，目前专科在读（大一），正在探索后端开发和 AI 领域。 这个网站是我的第一个项目 —— 完全手写，没有使用任何框架， 从写下第一行 HTML 到最终部署上线，我独立走完了整个流程。",
+        "我对「数据从哪来、怎么存、如何获取」的底层逻辑充满好奇， 也热衷于将繁杂的数据整理成直观易懂的信息。 目前我正在稳扎稳打地打基础：Python 语法、SQL、HTTP 原理，一样一样来。 在这个网站上，我会持续记录我的学习历程与踩过的坑。"
+      ],
+      "learning": [
+        "Python 编程基础与常用库",
+        "SQL 与数据库设计入门",
+        "HTTP / REST API 是怎么工作的",
+        "机器学习基础概念（PyTorch 起步）"
+      ],
+      "skills": [
+        {
+          "title": "后端开发",
+          "items": [
+            "Python",
+            "C语言",
+            "Node.js",
+            "SQL",
+            "Git"
+          ]
+        },
+        {
+          "title": "AI · 数据(学习中)",
+          "items": [
+            "Pandas",
+            "NumPy",
+            "数据清洗",
+            "Matplotlib",
+            "scikit-learn"
+          ]
+        },
+        {
+          "title": "工具与基础",
+          "items": [
+            "HTML / CSS",
+            "Linux 命令行",
+            "VS Code",
+            "Markdown",
+            "英语文档阅读"
+          ]
+        }
+      ],
+      "contactNote": "代码和练习都会放在这里",
+      "footerNote": "用 HTML / CSS / JavaScript 手写"
+    },
+    "now": [
+      {
+        "text": "在学 Python 基础语法和文件读写，每天写一点小练习。",
+        "date": "2026-09-05",
+        "status": "doing"
+      },
+      {
+        "text": "刚把 SQL 的增删改查过了一遍，下一步学多表连接。",
+        "date": "2026-09-09",
+        "status": "doing"
+      },
+      {
+        "text": "在做：这个个人主页 —— v0.1 已经上线，正在想下一步加什么。",
+        "date": "2026-10-10",
+        "status": "doing"
+      },
+      {
+        "text": "准备做：把学的机器学习概念整理成一篇能看懂的小文章。",
+        "date": "2026-10-11",
+        "status": "planned"
+      }
+    ],
+    "projects": [
+      {
+        "slug": "personal-portfolio",
+        "title": "个人作品集 v0.1",
+        "status": "done",
+        "date": "2026-10-11",
+        "tags": [
+          "HTML",
+          "CSS",
+          "JavaScript",
+          "响应式布局",
+          "GitHub Pages"
+        ],
+        "summary": "就是你现在正在看的这个页面。用纯 HTML + CSS + JavaScript 手写， 没有框架、没有依赖，手机和电脑都能正常显示，已部署到 GitHub Pages。 做它的目的是把「结构 / 样式 / 交互」这三件事从头到尾走一遍。",
+        "repo": "https://github.com/Mucheng-zzb/personal-portfolio",
+        "live": "https://mucheng-zzb.github.io/personal-portfolio/",
+        "featured": true,
+        "order": 1
+      },
+      {
+        "slug": "notes-collection",
+        "title": "本站笔记合集",
+        "status": "planned",
+        "date": "2026-10-11",
+        "tags": [
+          "Markdown",
+          "Git"
+        ],
+        "summary": "把后端和数据库学习过程中的笔记、代码片段整理到本站的笔记区块（#/notes），方便自己回头查，也让别人能直接读到，而不是散在一个没人看的仓库里。",
+        "order": 2
+      },
+      {
+        "slug": "data-toolkit",
+        "title": "数据小工具",
+        "status": "done",
+        "date": "2026-10-11",
+        "tags": [
+          "Python",
+          "Pandas"
+        ],
+        "summary": "读 CSV → 清洗 → 统计 → 出图的命令行小工具，只依赖 pandas 和 matplotlib，含完整错误处理与可复现的 README。",
+        "order": 3
+      },
+      {
+        "slug": "api-service",
+        "title": "第一个 API 服务",
+        "status": "planned",
+        "date": "2026-10-11",
+        "tags": [
+          "Python",
+          "FastAPI",
+          "SQLite",
+          "REST API"
+        ],
+        "summary": "用 FastAPI 搭一个带增删改查的小接口，接上 SQLite 存数据，再用自动生成的文档把接口说明白。目前还在学 HTTP 基础。",
+        "order": 4
+      }
+    ],
+    "notes": [
+      {
+        "slug": "function-definition-vs-call",
+        "title": "函数定义只是\"说明书\"，不会自己执行，必须要调用",
+        "date": "2026-10-11",
+        "tags": [
+          "Python"
+        ],
+        "summary": "def 只是给函数登记了身份，所以加 () 才能真正执行，不加 return 也只会拿到 None。",
+        "draft": false,
+        "body": "一句话结论：def 只是登记信息，加个 () 才会执行；如果只干活不汇报，默认返回 None。\n\n## 我遇到的问题\n\n刚开始学习 Python 的时候，我写了个函数，运行整个程序时，屏幕却没反应。有时又会突然蹦出一个 None，让我真的是一脸懵。\n\n## 我以为对的 / 原来的做法\n\n我以为写了 def greet():，程序跑到这里就会自动执行打印。\n\n我以为 greet 和 greet() 是一回事，写哪个都可以。\n\n我以为在同一个文件里写两个同名的 def，Python 会报错。结果是用最后一个覆盖了前面的，导致改了半天代码却不生效。\n\n## 现在怎么做\n\n**1. def 只是登记（相当于把工具放进了工具箱），必须加 () 才是真正调用。**\n\n我先写了 `def greet():`，然后在下面写了一行 `greet`，运行时屏幕上是空的；把那一行改成 `greet()` 之后，才打印出 `Hello_World`。\n\n```python\ndef greet():\n    print(\"Hello_World\")\n\nprint(\"--- 还没调用 greet ---\")\ngreet                 # 没加括号：屏幕上什么都不会出现\nprint(\"--- 写了 greet() 之后 ---\")\ngreet()               # 加了括号：这里才打印 Hello_World\n```\n\n**2. print 只是展示，如果没写 return，它默认交回 None。**\n\n`get_greet()` 明明打印了 `Hello_World`，但我写 `result = get_greet()` 再 `print(result)`，屏幕上先出现 `Hello_World`、紧接着出现 `None`——两行输出，说明\"打印出来\"和\"交回来\"是两件事。\n\n```python\ndef get_greet():\n    print(\"Hello_World\")   # 只打印，没有 return\n\nresult = get_greet()\nprint(result)              # 打印出 None\n```\n\n**3. Python 中重复定义同名函数不会报错，后面的会覆盖前面的。**\n\n我在同一个文件里写了两个同名函数，第一个打印 `Hello_World`、第二个打印 `Hello_Again`，Python 一句提示都没有；调用时跑的是第二个。\n\n```python\ndef greet():\n    print(\"Hello_World\")\n\ndef greet():\n    print(\"Hi\")\n\ngreet()   # 没有报错，打印的是 Hi\n```\n\n## 代价与边界\n\n最常见的是忘了写括号，特别是把函数当参数传递时。其次是改了函数没生效，排查半天，其实是被后面的同名定义覆盖了。最后是 print 和 return 混用，导致拿到 None。\n\n最致命的是忘了写括号，它让你误以为程序坏了。\n\n## 一句话总结\n\n看到 None，先回去看看函数里有没有写 return；函数不跑，先找找是不是只定义了没有加 ()。"
+      }
+    ]
+  }
+}

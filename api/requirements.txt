@@ -1,0 +1,10 @@
+# 后端运行时依赖（v0.5-A）
+#
+# 装：pip install -r requirements.txt
+# 跑测试还要多装一份：pip install -r requirements-dev.txt
+#
+# 版本一律写死（==）：这个项目要能「今天装得起来，三个月后也装得起来」。
+# 升级依赖是独立的一次改动，不能顺手做（禁止清单第 6 条）。
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+PyYAML==6.0.3

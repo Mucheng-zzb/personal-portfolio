@@ -1,0 +1,9 @@
+# 只有开发和 CI 需要的东西。
+#
+# 为什么不塞进 requirements.txt：**生产镜像不该装测试框架**。
+# 多一个包就多一份要跟的安全公告，而 pytest 在服务器上一次也不会跑到。
+#
+# httpx2：starlette 的 TestClient 从 1.7 起改用 httpx2，
+# 再用老的 httpx 会打一条 StarletteDeprecationWarning（不影响功能，但很吵）。
+pytest==9.1.1
+httpx2==2.13.1

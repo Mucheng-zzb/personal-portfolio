@@ -15,7 +15,7 @@
 | :--- | :--- | :--- |
 | `web/` | **唯一开发入口**，所有前端改动都做在这里 | 日常用 `cd web && npm run dev` |
 | `.github/workflows/web-deploy.yml` | 部署流水线 | push `main` 自动构建并发布（见[部署到 GitHub Pages](#部署到-github-pages)）|
-| `api/` | 后端，v0.5 才动工 | 暂时只有一份说明（`api/README.md`）|
+| `api/` | 后端（FastAPI），只读内容接口 | v0.5-A 起可用：`cd api && uvicorn app.main:app --reload`（见 `api/README.md`）|
 
 > **过渡期踩过的坑，留个记录**：v0.2-A 到 v0.2-B 之间，根目录和 `web/` 各存了一份同名文件，
 > 因为当时的 Pages 是「从分支根目录部署」，直接删文件线上会**立刻 404**。
@@ -64,7 +64,7 @@ personal-portfolio/
 │   ├── package.json        四个脚本：dev / build / preview / check
 │   ├── node_modules/       依赖（不入库，已写进 .gitignore）
 │   └── dist/               构建产物（不入库，部署时现构建）
-├── api/                  后端，占位，v0.5 才动（见 api/README.md）
+├── api/                  后端：只读内容 API（FastAPI），v0.5-A 起可用（见 api/README.md）
 ├── docs/                 路线图（ROADMAP）与架构文档（ARCHITECTURE）
 └── README.md             就是这个文件
 ```
