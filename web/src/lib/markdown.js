@@ -17,6 +17,7 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import sql from 'highlight.js/lib/languages/sql';
 import bash from 'highlight.js/lib/languages/bash';
 import json from 'highlight.js/lib/languages/json';
+import c from 'highlight.js/lib/languages/c';
 
 /*
    高亮配色【不在这里引】。
@@ -29,7 +30,9 @@ import json from 'highlight.js/lib/languages/json';
 */
 
 /* ------------------------------------------------------------------
-   只注册用得到的 5 种语言（python / javascript / sql / bash / json）。
+   只注册用得到的 6 种语言（python / javascript / sql / bash / json / c）。
+   加 c（以后要写 C 练习笔记）实测 +1.66 KB gzip；cpp 单独再 +1.54 KB，
+   合计会越过 3 KB 这条线，所以 C++ 等真要用了再加。
 
    【体积警戒】这里走的是 highlight.js/lib/core。
    改成完整的 'highlight.js' 或 common 构建，光它自己就约 40KB gzip，
@@ -41,6 +44,7 @@ hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('sql', sql);
 hljs.registerLanguage('bash', bash);
 hljs.registerLanguage('json', json);
+hljs.registerLanguage('c', c);
 
 /**
  * Markdown → 清洗后的 HTML 字符串。

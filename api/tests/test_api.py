@@ -45,7 +45,7 @@ def test_health_reports_dependency_status(client) -> None:
     content = body["dependencies"]["content"]
     assert content["status"] == "ok"
     assert content["projects"] == 4
-    assert content["notes"] == 1
+    assert content["notes"] == 2
     assert body["request_id"] == response.headers["X-Request-Id"]
 
 
@@ -132,16 +132,24 @@ def test_projects_default_order_and_shape(client) -> None:
         "data-toolkit",
         "api-service",
     ]
-    # 可选字段缺省补 null（前端不用先判 'repo' in p）
+    # 可选字段缺省补 null（前端不用先判 'repo' in p）。
+    # 样本换成 notes-collection —— api-service 交付后补上了 repo/live，
+    # 如今没写这两个字段的项目只剩它一个。
     first = body["items"][0]
     assert first["repo"] and first["live"] and first["featured"] is True
-    assert body["items"][3]["repo"] is None and body["items"][3]["live"] is None
+    assert body["items"][1]["repo"] is None and body["items"][1]["live"] is None
+    # 写了的就是字符串，不是空串
+    assert body["items"][3]["repo"] and body["items"][3]["live"]
 
 
 def test_projects_status_filter(client) -> None:
     body = client.get("/api/v1/projects?status=done").json()
-    assert body["total"] == 2
-    assert {p["slug"] for p in body["items"]} == {"personal-portfolio", "data-toolkit"}
+    assert body["total"] == 3
+    assert {p["slug"] for p in body["items"]} == {
+        "personal-portfolio",
+        "data-toolkit",
+        "api-service",
+    }
 
 
 def test_projects_tag_filter_is_exact_and_case_sensitive(client) -> None:
@@ -163,7 +171,7 @@ def test_projects_tag_filter_is_exact_and_case_sensitive(client) -> None:
 
 def test_projects_tag_and_status_combine(client) -> None:
     body = client.get("/api/v1/projects?tag=Python&status=done").json()
-    assert [p["slug"] for p in body["items"]] == ["data-toolkit"]
+    assert [p["slug"] for p in body["items"]] == ["data-toolkit", "api-service"]
 
 
 def test_project_detail(client) -> None:
@@ -175,9 +183,13 @@ def test_project_detail(client) -> None:
 
 def test_notes_list_has_no_body_but_detail_does(client) -> None:
     listed = client.get("/api/v1/notes").json()
-    assert listed["total"] == 1
+    assert listed["total"] == 2
     assert "body" not in listed["items"][0]
-    assert listed["items"][0]["slug"] == "function-definition-vs-call"
+    # 两篇同一天，标题按码点序兜底：'p'（print…）排在「函…」前面
+    assert [n["slug"] for n in listed["items"]] == [
+        "print-is-not-return",
+        "function-definition-vs-call",
+    ]
 
     detail = client.get("/api/v1/notes/function-definition-vs-call").json()
     assert "def greet()" in detail["body"]
