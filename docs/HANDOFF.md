@@ -6,7 +6,7 @@
 > 用途：产品架构师（只写 `.md`，不写代码）把「当前要交给 Claude Code 的活」「已定决策」「核验记录」
 > 集中在一处，避免每次靠聊天记录交接。
 >
-> **当前状态（2026-10-11 晚，v0.5 收口）**：v0.5（A+B）**验收全部关闭**，tag `v0.5.0` → `795ccae`（本地 == 远端）；**v0.5.x 加固（D43–D48）已落地并核验**——`web-ci.yml`（`npm run check` + 体积门禁 + 两条 Playwright 冒烟）、`web/scripts/measure-size.mjs`、文档对齐（CI 门禁 / 探活 / 隐私）、`docs/LEARNING.md` 骨架。线上 7/7 与本地 `web/dist` 逐字节一致。
+> **当前状态（2026-10-11 晚，v0.5 收口）**：v0.5（A+B）**验收全部关闭**，tag `v0.5.0` → `795ccae`（本地 == 远端）；**v0.5.x 加固（D43–D48）已落地并核验**——`web-ci.yml`（`npm run check` + 体积门禁 + 两条 Playwright 冒烟）、`web/scripts/measure-size.mjs`、文档对齐（CI 门禁 / 探活 / 隐私）、`docs/LEARNING.md` 骨架。线上 7/7 与本地 `web/dist` 逐字节一致；**docs 对齐审计已完成（`66fcec0`）**。
 >
 > **下一步**：内容轨（笔记 3/5，还差 2 篇，截止 v0.8）+ v0.6 前的 D40（提示文案）与 D46（隐私条款设计）。
 > **未决**：D40 的三个方向、`docs/LEARNING.md` 的 20 个答案（**只能用户写**）。
@@ -99,7 +99,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 而 B1 做完，v0.4 的项目卡筛选/排序/封面才有真实数据可用，顺序上更顺。
 **注意**：v0.4 里包含 BASELINE 记下的唯一失分项（页脚对比度 4.19 → 需 ≥4.5），修完整站 Lighthouse 即 100/100/100/100。
 
-### 1.4 文档不一致 —— 旧的已关闭，新增 8 处待修（6 处文档之间 + 2 处文档与实现，交给 Claude Code）
+### 1.4 文档不一致（旧批已关闭；本批逐条在下方标状态 —— **已完成的不删，标 ✅**。标题不再写数字：数字会烂）
 
 **已关闭（架构师 10-11 复验）**：`docs/ARCHITECTURE.md` §3 目录树原先那两处与 D5 的矛盾已消失——
 `web/snapshot/` 在 ARCHITECTURE 全文中不存在，`export_content.py` 的注释已是「v0.5 定：把内容导出为后端可读结构（前端不再用它做快照）」。
@@ -120,7 +120,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
    应改成「**复用同一套规则与同一份内容**：Python 侧按 `content-schema.js` 的字段表和排序规则重新实现，并用契约测试证明两侧一致」。
 4. `docs/ROADMAP.md` §5「范围」只列了 6 个端点（`/health`、`/profile`、`/projects`、`/notes`、`/notes/{slug}`、`/now`），
    漏了 `/projects/{slug}`；`ARCHITECTURE` §6 与 PLAYBOOK §5.4-A 都是 **7 个**。以 ARCHITECTURE 为准，ROADMAP 那行补齐或注明。
-5. `docs/ARCHITECTURE.md` §7 的表注释写着 `ip_hash ... -- SHA256(ip + 每日盐)`，与**已定决策 D10**
+5. ✅ **已修（`66fcec0`）**：`docs/ARCHITECTURE.md` §7 的表注释原写着 `ip_hash ... -- SHA256(ip + 每日盐)`，与**已定决策 D10**
    （`SHA256(IP + IP_HASH_SALT + 日期前缀)`，**不每日换盐**）直接矛盾。实施者照 ARCHITECTURE 写就会每天换盐，
    把「同一 IP 的跨天识别」和限流窗口全打乱。以 D10 为准，§7 那行注释必须改。
 6. `docs/CLAUDE-CODE-PLAYBOOK.md` §5.6 的 v0.7-A 验收写「超过日限额返回 **503/429**」，没定死。
@@ -132,7 +132,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
    `web/public/images/` 里也没有占位图。目前 4 张项目卡都没有 `cover:`，所以这条从未被触发 —— 一旦加封面就会暴露。
    要么补实现（`onerror` + 一张占位图），要么把这条从 §4 的降级契约里删掉/改写。建议归到 v0.8。
 
-8. **文档与实现不一致（与第 7 条同类，但影响面更大）**：`docs/ROADMAP.md` §8 第 386 行「CI 门禁：PR 必须 lint + test + build 全绿才能合并」与
+8. ✅ **已修（`66fcec0` + D43 落地）**：**文档与实现不一致（与第 7 条同类，但影响面更大）**：`docs/ROADMAP.md` §8 第 386 行「CI 门禁：PR 必须 lint + test + build 全绿才能合并」与
    `docs/ARCHITECTURE.md` §10 质量门禁表第 539 行「PR | lint + test + build 全绿 | CI 阻断合并」，
    **都声明了一道并不存在的门禁**：`web/` 侧没有任何 workflow 跑 `npm run check`（`web-deploy.yml` 只有 push(main) + workflow_dispatch；
    `api-ci.yml` 才有 `pull_request`），`web/package.json` 也没有 `test`。
@@ -266,7 +266,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 - [ ] ROADMAP §5 的风险段同步这条结论
 
 **C 组 —— v0.6 / v0.7 前**
-- [ ] ARCHITECTURE §7：`ip_hash` 注释从「每日盐」改为与 D10 一致（`SHA256(IP + IP_HASH_SALT + 日期前缀)`，**盐不每日轮换**）
+- [x] ARCHITECTURE §7：`ip_hash` 注释从「每日盐」改为与 D10 一致（**`66fcec0` 已完成**）（`SHA256(IP + IP_HASH_SALT + 日期前缀)`，**盐不每日轮换**）
 - [ ] PLAYBOOK §5.6 验收：把「503/429」拆开 —— **单 IP 超限 → 429**；**全站日上限 / `AI_ENABLED=false` / 无 key → 503**
 - [ ] PLAYBOOK §5.6 验收补一条：跑 20 条评测集（含 5 条应拒答）并把命中率/引用正确率写进 `docs/AI-EVAL.md`（D9）
 - [ ] ARCHITECTURE §7/§8 与 PLAYBOOK §5.6：写明 `index.json` **提交进仓库**、CI 用 `content_hash` 校验它与 `web/content` 同步（不一致就红）；`ask_logs` 在无 `DATABASE_URL` 时退化为结构化 stdout 日志 + 进程内计数（D28）
@@ -289,9 +289,9 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 | ~~**v0.5-A**~~ ✅ | FastAPI 只读 API（`/api/v1`）+ 统一错误结构 + request-id + CORS 白名单 | 两侧 schema 一致性测试；不接数据库。**发放的指令** = PLAYBOOK §5.4 第 1 块 + §1.5 的两条前置；核验清单见 §1.5 |
 | ~~v0.5-B~~ ✅ | 部署到免费 PaaS + **前端降级硬验收** | 平台见 **D34 = SnapDeploy**（无卡、Docker、仓库根构建）；事实见 §7.0；**指令见 §1.7**（含架构师定义的三种降级演练） |
 | **v0.5.x 加固**（插在 v0.6 之前） | ① `web-ci.yml`（check + 体积门禁 + 两条冒烟）② 文档对齐（§1.4 第 8 条 + ARCHITECTURE §11 删「探活防休眠」+ 隐私保留/删除小节 + ROADMAP §6 第 7 条措辞）③ D40 提示文案 ④ `docs/LEARNING.md` + v0.2–v0.5 五问 ⑤ BASELINE 实测值修正 | **不动 ROADMAP 的版本编号与顺序**（依赖铁律没变），只调「何时开工」；超前 6 周用来还债，不加功能 |
-| v0.6-A | SQLite/Postgres + 留言板（**整版可砍**） | 限流放进程内；`ip_hash` **必须按 D10（不每日换盐）**，ARCHITECTURE §7 的「每日盐」注释待改（§1.4-5）；不留生产后门 |
+| v0.6-A | SQLite/Postgres + 留言板（**整版可砍**） | 限流放进程内；`ip_hash` **必须按 D10（不每日换盐）**，ARCHITECTURE §7 的「每日盐」注释 ✅ 已在 `66fcec0` 修正；不留生产后门 |
 | v0.7-A / B | RAG：离线索引 + `POST /api/v1/ask`(SSE) + 前端浮层 | 阈值用 20 条评测集标定（**要补进 v0.7-A 验收**）；SSE 平台超时→非流式；浮层懒加载；**`ask_logs` 与 `index.json` 的依赖见 §1.8 / D28** |
-| v0.8-A | pytest/Vitest + CI **按路径过滤** + 安全扫描 + 文档（**+ 404 页，待 D27**） | 门禁在分支/PR 上验证，别污染 main |
+| v0.8-A | pytest + 安全扫描 + 文档（**+ 404 页，待 D27**）；前端：两条冒烟**已在 v0.5.x 落地**，本版只做扩展；**不引入单元测试框架（D49）** | CI 跑在 push 上阻断（**不设强制 PR**，D43） |
 | v0.9-A | 按 ROADMAP §8 逐条自检 + 三故障演练 + 外链与 TODO 扫描 | 产出 `docs/RELEASE-CHECK.md` |
 | v1.0-A | CHANGELOG + tag `v1.0.0` + Release/公告 + 复盘笔记 | 发布 commit 不夹带功能改动 |
 
@@ -344,6 +344,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 | D46 | 合规：ask_logs 存提问 + v0.6 的 UGC + 统计工具，却无隐私说明/保留期/删除路径/AI 提示 | ✅ **已定**：**v0.6 之前**在 ARCHITECTURE §11 补「数据保留与删除」小节（ask_logs 存什么、留多久（建议 ≤90 天）、怎么删；留言板 UGC 的删除请求路径）；**v0.6 实装** `/privacy` 静态页 + 页脚链接 + 留言板提交处一行同意说明；**v0.7 实装** AI 浮层「请勿输入敏感信息」。**两边都要写**：条款进 ARCHITECTURE（设计），验收条进 PLAYBOOK §5.5/§5.6（可测） | v0.6 前设计；v0.6 / v0.7 实装 |
 | D47 | 学习闭环：ROADMAP §9 说「能独立讲清每版架构决策」但无机制 | ✅ **已定**：每版末一次 **5 问口试**（5 分钟），答案由**用户自己写**进 `docs/LEARNING.md`；架构师出题 + 核验要点是否答到。**v0.5.0 起补 v0.2–v0.5 四版**，v0.6 起固定动作。这条是唯一直接服务「作品集」这个产品目标的流程（面试就是口试） | v0.5.x 起 |
 | D48 | 内容轨截止点未定（笔记 3/5、`notes-collection` 无链接） | ✅ **已定**：**笔记还差 2 篇 → 截止 v0.8（12/14）**，留两周缓冲；`notes-collection` 是 planned 且无链接，**不违反 §8**（§8 只禁「done 却拿不出东西」）→ 低优先，并入 `personal-portfolio` 卡或补 `live:` 指向 `#/notes`，**截止 v0.9**。**超前的时间用来还债（D43–D47 + 内容），不是提前上 v0.6** —— 免费档休眠会让留言板写路径体验很差（提交时容器没醒 → 503，且接口唤不醒），D42/D45 是同一条链 | 内容轨 |
+| D49 | v0.8 还要不要「前端 Vitest 单测」 | ✅ **已定**（随 `66fcec0` 的文档对齐定案，取代 D43 里「Vitest 留 v0.8」那句）：**不引入单元测试框架**。理由：两条 Must 底线（禁用 JS 四要素可见 / 后端不可达降级）已由 **Playwright 黑盒冒烟**在 v0.5.x 落地，它们守的正是「站点在坏情况下还能不能用」；原生 JS + 无框架的代码里，单测能覆盖的多是解析/格式化这类小事，收益低于维护成本。与 ROADMAP §6「可砍：前端测试（保留后端契约测试）」同向。**注意**：`PLAYBOOK:363` 已写成「不引入单元测试框架」，此条即其依据；将来若真要写单测，先改此决策 | v0.8（已定） |
 | D40 | 线上常态会是「容器睡着 → 访客看到『实时数据不可用』」——这条提示该不该改 | ⏳ **待定（记下来，v0.6/发布前再处理）**：现状符合设计（ADR-005 要求降级可见），但对**第一次来访的陌生人**，「实时数据不可用」读起来像站点坏了，而他看到的其实和实时数据一字不差。可选方向：① 保持现状（诚实、且面试时可讲「这就是降级设计」）；② 改成更中性的措辞（如「显示的是构建时快照」）；③ 只在**用户主动交互过**（如点过筛选）或**第二次访问**时才提示。**注意**：无论选哪个，都不能让访客以为内容缺失 —— 内容其实完全一样 | v0.6 / v0.9 前 |
 | D39 | 「控制台只打 warning（不能有 error）」这条硬验收怎么判 | ✅ **已定（实测后收紧语义）**：判据是「**应用代码**不产生 error」，不是「控制台里一条 error 都没有」。原因：主机不可达时，**浏览器网络栈自己**会打 `Failed to load resource: net::ERR_CONNECTION_REFUSED`，JS **无法抑制**它。实测四种场景：真后端在线 → 控制台**零消息**；超时 → **只有我们的一条 warning**；坏响应 503 → 只有 warning；服务不存在 → 我们一条 warning + 浏览器自己两条 resource error（后者不算违反） | 已用于本轮演练判据 |
 | D33 | `/health` 暴露绝对 `source_dir` | ✅ **已落地并核验**（`8eea813`），实现比原措辞更合理，**采纳**：本地给绝对路径（排查方便）；生产只给**相对仓库根的路径**（`web/content`）；若内容不在仓库根之下则显示「路径已隐藏」。实测 `ENV=production` 下不再出现绝对路径与用户名 |
@@ -375,6 +376,7 @@ Lighthouse 移动端 100/95/100/100，唯一失分是页脚对比度 4.19（留�
 | 10-11 | **tag `v0.4.0` 位置** | ⚠️ 存疑，待用户决定（D23） | `gh api .../tags`：远端 `v0.4.0` → `e6ce078`（15:41:17 的提交），其后 2 分钟又有 `a46707e`（15:43:23 文案统一）与 `509b785`（OG 重生成）→ tag 未含最终文案。全部 tag 均为轻量 tag（`%(objecttype)=commit`） |
 | 10-11 | **免费 PaaS 现查（ADR-005 六问）** | ✅ 完成；**结论改变了候选表** | 官方文档实测：Render 仍免费（15 分钟休眠、~1 分钟唤醒、750 实例小时/月、Hobby 出网 5 GB/月、免费 Postgres 30 天过期、免费无持久盘）；HF Spaces 创建 Docker Space 需付费计划；Fly 自 2024-10-07 起不再对新用户提供（只 2 VM 小时/7 天试用）。详见 §7 |
 | 10-11 | **外部评审 9 条 + 2 项排期判断：架构师裁决** | ✅ 同意 5（1/2/6/7/9）；部分同意 4（3/4/5/8）；**明确反驳 2 个子结论**（Lighthouse 当门禁、PR 流程+预览环境）；排期 A 部分同意、B 同意 | 逐条核证据：① `web-deploy.yml` 确实只有 push(main)+workflow_dispatch（12–24 行）、仓库无任何 workflow 跑 `npm run check`、`web/package.json` 无 `test` —— **评审的事实全部成立**；② 更严重的是 `ROADMAP` §8 第 386 行与 `ARCHITECTURE` §10 第 539 行**都声明了一道不存在的「PR 门禁」**（已记 §1.4 第 8 条）；③ `git grep gzipSync` **命中 CLAUDE.md 与 docs（含 BASELINE:134 一行可复现命令）**，所以「完全不可复现」不成立，准确说法是「可复现但不可自动比对」；④ ROADMAP 第 197/221 行早已定「Lighthouse 只记录、不门禁」→ **驳回 Lighthouse 门禁**；⑤ **驳回**「PR 流程 + 预览环境」；⑥ 评审把 §1.4 的 7 处不一致当作「共同盲区」的证据 —— **这条判据我反驳**：那正是验收方查出来的。已登记 D43–D48 |
+| 10-11 | **文档对齐审计（架构师核验，D44）** | ✅ 通过；发现 1 处越权改范围，已裁决 | ① `66fcec0` 改 4 文件（ARCHITECTURE / PLAYBOOK / ROADMAP / HANDOFF），`main == origin == 66fcec0`、工作区干净；② **0 个 run** —— 我独立用 `gh run list --json headSha` 数过（`66fcec0` → 0），原因是三份 workflow 的 paths 都不含 `docs/**`，实现方给的推理复核成立；③ 语义判据：`vitest` / `npm test` 在三份权威文档 **0 命中**、`每日盐` 在 ARCHITECTURE **0 命中**（只剩 HANDOFF 的历史行）；④ 实现方**自行多找出 4 处同类错**（PLAYBOOK:363/370、ROADMAP:381/389/382）—— 这种「顺藤摸瓜」值得保留；⑤ ⚠️ 但它顺手把 v0.8 的「前端 Vitest」改成「不引入单元测试框架」，**超出我给的授权**（我只让改选型表与目录树）→ 我裁决**接受方向**并补登记 **D49** |
 | 10-11 | **v0.5.x 加固第二轮：CI 口径闭合（架构师核验）** | ✅ 验收标准达成 | ① `5b98cd2` 的 web CI **#4**（`38142201253`）**8 步全绿**；② 从 **CI 日志**读到体积门禁步的实测：`assets/index-CisHLDtd.js **54.42 KB / 152 611 B**`、合计 `66.95 KB / 193 318 B` —— **与线上逐字节同一份**（我本地注入同款 `VITE_API_BASE` 复算，数字完全相同）；③ BASELINE §2 已更新为线上数字（`272–273` 行），并把「58 B」改写为历史说明（`142`/`158–159` 行）；④ `measure-size.mjs` **显式** `gzipSync(raw, { level: 6 })` 并写明「档位不写死则数字不可比」（还实测了 level 1/6/9 = 8245/7638/7612 B）；⑤ `PLAYBOOK:268` 已给 v0.5-A 的探活条加作废标记（D45）；⑥ 悬空提交已清（`git fsck` 无 dangling），清理前实现方先证明「b6c9a16 的 HANDOFF 内容全部是 HEAD 的子集」——**这步自证做得对** |
 | 10-11 | **v0.5.x 加固：架构师独立核验（D44 首次执行）** | ✅ 通过（含两次「故意写坏」） | ① 失败 run 定位到**具体步骤**：`web CI #2`（分支 `ci/prove-web-ci-red`，event=pull_request，id `38139933348`）**第 7 步「体积门禁」failure**，前 6 步 success —— 「故意写坏会红」有可查证据；② **本机独立跑** `npm run smoke`（PW_CHANNEL=chrome）= **2 passed (2.8s)**；③ **我自己打破两条冒烟**：`javaScriptEnabled` 改 `true` → 守卫断言报 `Received string: "theme-light js"`；期望文案改「实时数据不可用XX」→ 报 `Expected "实时数据不可用XX" / Received "实时数据不可用"`，**2 failed**，随后 `git checkout` 还原、工作区干净；④ `node web/scripts/measure-size.mjs` 实测 JS 54.41 KB / 152 553 B、CSS 5.07 / 19 611、HTML 7.46 / 21 096、合计 66.94 KB / 193 260 B，与 BASELINE 表**逐项一致**；⑤ 仓库卫生：`dist-api-down/`、`test-results/`、`playwright-report/`、`playwright/.cache/` 均已在 `.gitignore`，3 个临时 PR（#1/#2/#3）全部 CLOSED、远端只剩 `main`；⑥ **我自己弄出一个 `?? .local/`（gh 的 device-id）已清除** —— 记在这里，因为「工具输出同样要先怀疑一遍」也包括「工具会在仓库里留东西」。✅ **已修（`5b98cd2`）**：web-ci 构建步注入 `vars.API_BASE`，CI 体积门禁实测 `index-CisHLDtd.js` 54.42 KB / **152 611 B**、合计 193 318 B，与线上逐字节同一份（run `38142201253`） |
 | 10-11 | **v0.5.0 打 tag 后核验（架构师）** | ✅ 归档成立；⚠️ 2 项待办 | ① 远端 tag **7 个**，`v0.5.0` → **`795ccae`**，**本地 `for-each-ref` 与远端 `git/refs/tags` 完全一致**（我先前一 度读到 `c1dd704` 是 PowerShell 解析 `^{commit}` 的假象，已排除）；② `v0.5.0` 是 `main` 的祖先，其后只多一个 docs-only 提交（`07d39cc`）；③ **回滚可用性已验**：`git ls-tree v0.5.0` 里 `.github/workflows/web-deploy.yml` 与 `api-ci.yml` 都在，`Dockerfile` 也在仓库根；④ 待办 A：**D42 复现确认**（容器仍 `notes=2`）；⑤ 待办 B：`docs/BASELINE.md` 的 v0.5-B 当前值过期（写 53.26 KB / 65.79 KB，**实测 54.37 KB / 66.86 KB**，差在第三篇笔记） |

@@ -33,6 +33,8 @@ Conventional Commits，描述用中文：`feat:` `fix:` `docs:` `chore:` `refact
 
 ## 完成标准
 任何任务结束前必须：运行构建与测试、粘贴真实输出、报告未完成项。不要用「应该」「大概」描述结果。
+- 改动 `web/**` 时，除 `npm run check` 外必须跑 `npm run smoke`（两条黑盒冒烟：禁用 JS / 后端不可达）——
+  只跑 lint 与 build 看不见这两种失效。
 
 ## 本机环境注意（Windows + DSH 沙箱）
 - HTTPS 出网经过 Watt Toolkit（SteamTools 证书）中间人代理：沙箱内 `git ls-remote` / `git push` 可能因
