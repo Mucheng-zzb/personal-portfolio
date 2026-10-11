@@ -4,6 +4,7 @@ status: done
 date: 2026-10-11
 tags: [Python, Pandas]
 summary: 读 CSV → 清洗 → 统计 → 出图的命令行小工具，只依赖 pandas 和 matplotlib，含完整错误处理与可复现的 README。
+repo: https://github.com/Mucheng-zzb/data-toolkit
 order: 3
 ---
 
