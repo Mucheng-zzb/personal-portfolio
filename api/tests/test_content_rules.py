@@ -265,6 +265,27 @@ def test_non_utf8_profile_json_is_503(temp_content_dir: Path) -> None:
         assert "profile.json" in health.json()["dependencies"]["content"]["detail"]
 
 
+def test_non_utf8_now_json_is_503(temp_content_dir: Path) -> None:
+    """now.json 非 UTF-8：和 .md、profile.json 一样归 503。
+
+    三处读取路径（集合目录下的 .md、profile.json、now.json）现在走的是同一个
+    `_read_text()`，但**每个入口都值得各测一遍** —— 这正是一个入口被漏掉时
+    最容易出错的地方（D31 起初就是只在 .md 上被发现，另外两处是第二轮冷启动才中的）。
+    """
+    (temp_content_dir / "now.json").write_bytes(
+        _gbk_bytes('[{"text": "在学 Python", "date": "2026-10-11", "status": "doing"}]')
+    )
+
+    with client_for(temp_content_dir) as client:
+        response = client.get("/api/v1/now")
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "content_unavailable"
+
+        health = client.get("/api/v1/health")
+        assert health.status_code == 503
+        assert "now.json" in health.json()["dependencies"]["content"]["detail"]
+
+
 def test_read_failure_message_names_the_file_and_the_reason(temp_content_dir: Path) -> None:
     """报错要能看出**哪个文件**、**什么原因** —— 只说一句「读取失败」等于没说。"""
     (temp_content_dir / "projects" / "broken.md").write_bytes(b"---\ntitle: \xff\xfe bad\n---\n\n")
