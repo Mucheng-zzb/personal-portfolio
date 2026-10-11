@@ -11,6 +11,7 @@
     "notes": [
       "web/content/notes/assignment-is-not-copy.md",
       "web/content/notes/function-definition-vs-call.md",
+      "web/content/notes/list-index-starts-at-zero.md",
       "web/content/notes/print-is-not-return.md",
       "web/content/notes/what-is-api.md"
     ],
@@ -179,6 +180,17 @@
         "summary": "print 只往屏幕上写；没写 return，函数交回的就是 None",
         "draft": false,
         "body": "## 一句话结论：\n\n没写 `return` 时，函数默认交回 `None`；而 `print` 只负责往屏幕上写字，跟函数交回什么结果完全无关。\n\n## 我遇到的问题\n\n我写了一个函数，里面用 `print` 打印了计算结果。我觉得大功告成，于是把这个函数的调用赋值给了一个变量，结果打印这个变量时，屏幕上却出现了一个 `None`。\n\n我当时懵了：明明计算了，也打印了，为什么变量拿不到值？\n\n## 我以为对的 / 原来的做法\n\n我以前觉得：只要屏幕上打印出来了结果，函数就算完成了任务，这个结果就能被赋值给变量。\n\n我甚至以为 `None` 是 `print` 造成的——打印了那么多东西，怎么会什么都没留下？\n\n我一直以为“print 了就等于交回了”，把显示结果和函数返回值混为一谈。\n\n**其实是**：`print` 只管往屏幕上写，它不决定函数交回什么；交回什么，只由 `return` 决定。\n\n## 现在怎么做\n\n理解这一点，用三块来拆解：\n\n**1. 奶茶店类比**：`print` 就像店员大声喊“您的奶茶好了”（屏幕有显示），但没把奶茶递到我手里（没交回值）；`return` 才是真正把奶茶递到我手里。\n\n现象：屏幕上明明出现了 `order 32 is ready`，可 `a` 依然是 `None`；而 `b` 拿到的是真正的字符串。\n\n```python\ndef shout():\n    print(\"order 32 is ready\")   # 只喊，不递东西\n\ndef hand_over():\n    return \"milk tea\"            # 真把东西递出来\n\na = shout()\nprint(\"a =\", a)\n\nb = hand_over()\nprint(\"b =\", b)\n```\n\n```\norder 32 is ready\na = None\nb = milk tea\n```\n\n**2. 默认返回值**：如果函数里没写 `return`，或者只写了 `return` 后面空着，Python 默认交回 `None`。\n\n现象：我写了一个 `return` 后面什么都没跟的函数，打印它的结果，屏幕上就是 `None`。\n\n```python\ndef empty_return():\n    return\n\nprint(empty_return())\n```\n\n```\nNone\n```\n\n**3. 算了但没交回**：比如一个 `add` 函数，算了结果却只 `print`，调用时结果就被丢掉了。\n\n现象：`add(1, 2)` 屏幕上打印了 `3`，但 `result` 里存到的还是 `None`。\n\n```python\ndef add(a, b):\n    print(a + b)  # 只喊话，没递东西\n\nresult = add(1, 2)\nprint(result)  # 输出 None，因为没写 return\n```\n\n```\n3\nNone\n```\n\n## 代价与边界\n\n这个坑很疼：拿着 `None` 去继续算会直接报错。不过报错分两种：对它**调方法**是 `AttributeError: 'NoneType' object has no attribute 'upper'`；**做加减**这类运算是 `TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'`。\n\n我要记住的是，“屏幕上有输出”绝不等于“手里拿到了值”。\n\n更麻烦的是，没写 `return` 不是语法错误，Python 不会报错，所以没有任何提示会提醒我，只能自己排查。\n\n## 一句话总结\n\n屏幕上的东西（print）和手里的东西（return）是两条线。"
+      },
+      {
+        "slug": "list-index-starts-at-zero",
+        "title": "下标不是“第几个”，是“走几步”",
+        "date": "2026-10-11",
+        "tags": [
+          "Python"
+        ],
+        "summary": "列表下标从 0 开始；3 个元素的列表最后一个下标是 2，写 3 会当场报 IndexError。",
+        "draft": false,
+        "body": "## 一句话结论：\n\n列表的下标不是“第几个”，而是“**从开头往前走几步**”：第一个元素是 `[0]`，所以 3 个元素的列表最后一个下标是 `2`——写 `[3]` 会当场报错。\n\n## 我遇到的问题\n\n我想拿列表的最后一个元素，顺手就写了 `[3]`——因为列表里明明有 3 个东西。\n\n结果屏幕上不是我要的元素，而是一句报错。\n\n我又试了 `pets[len(pets)]`，还是同一句报错。当时我觉得是“下标坏了”。\n\n## 我以为对的 / 原来的做法\n\n我以为 `pets[3]` 就是“第 3 个元素”。\n\n我以为 `len(pets)` 也能直接拿来当下标——有几个元素，下标不就是几吗？\n\n我还以为越界会给我一个空值，让我自己去判断。\n\n**其实**：这三个想法都不对。下标数的是“**走几步**”，不是“第几个”；而越界不是给空值，是**当场报错**。\n\n## 现在怎么做\n\n**1. 下标是“走几步”**\n\n```python\npets = [\"cat\", \"dog\", \"fish\"]\n\nprint(pets[0])    # 走 0 步 → 第一个\nprint(pets[1])    # 走 1 步 → 第二个\nprint(pets[2])    # 走 2 步 → 第三个\nprint(len(pets))  # 3：一共有几个\n```\n\n```\ncat\ndog\nfish\n3\n```\n\n**2. `len` 是“有几个”，最后一个下标是 `len - 1`**\n\n这是最容易差一的地方：`len` 是 3，但最后一个下标是 **2**。\n\n```python\nprint(pets[len(pets) - 1])   # fish\nprint(pets[len(pets)])       # 越界\n```\n\n```\nfish\nIndexError: list index out of range\n```\n\n`pets[len(pets)]` 恰好越界一个——不多不少。\n\n**3. `-1` 是拿最后一个的捷径**\n\n```python\nprint(pets[-1])   # fish：从末尾往前 1 步\nprint(pets[-3])   # cat：往前 3 步，回到第一个\n```\n\n```\nfish\ncat\n```\n\n## 代价与边界\n\n越界是**立刻报错**，不是悄悄给我一个空值。这其实是好事：错误当场暴露，不会带着一个“看起来能用”的空值继续往下跑。\n\n想拿最后一个元素，优先写 `-1` 而不是 `len(pets) - 1`——少一处减法，就少一次算错的机会。\n\n负数下标也不是万能的。空列表上取 `[-1]` 照样报错（`len(empty)` 是 0，`empty[-1]` 直接 `IndexError: list index out of range`）；`-4` 这种超出范围的下标，一样会越界。\n\n## 一句话总结\n\n下标回答的是“**走几步**”，不是“**第几个**”——这就是所有差一错误的源头。"
       },
       {
         "slug": "function-definition-vs-call",
