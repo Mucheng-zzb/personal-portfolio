@@ -3,7 +3,7 @@ title: 数据小工具
 status: done
 date: 2026-10-11
 tags: [Python, Pandas]
-summary: 一个用 Python 写的小脚本，把 CSV 里的数据快速清洗、统计并画成图。等学完 Pandas 就动手。
+summary: 读 CSV → 清洗 → 统计 → 出图的命令行小工具，只依赖 pandas 和 matplotlib，含完整错误处理与可复现的 README。
 order: 3
 ---
 
