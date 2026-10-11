@@ -39,6 +39,12 @@ Conventional Commits，描述用中文：`feat:` `fix:` `docs:` `chore:` `refact
   TLS 失败（schannel 报 `SEC_E_NO_CREDENTIALS`，openssl 后端找不到该根证书）。可行做法：导出根证书为
   PEM 后 `git -c http.sslBackend=openssl -c http.sslCAInfo=<pem> …`；`raw.githubusercontent.com` 需 `--ssl-no-revoke`。
 - 远端核验优先用本机已登录的 `gh` CLI（只读 `gh api`）；匿名 API 额度只有 60/小时。
+- 同一个根证书问题也挡住**无头 Chrome 访问线上**（Lighthouse 会报 `net::ERR_CONNECTION_RESET`）：
+  加 `--ignore-certificate-errors` 即可。它只影响「本机怎么连上站点」，不动被测页面：
+  `npx lighthouse <URL> --chrome-flags="--headless=new --no-sandbox --disable-gpu --ignore-certificate-errors"`。
+  测暗色主题再追加 `--force-dark-mode`（它会让 `prefers-color-scheme` 命中 dark）。
+- 无头 Chrome 的 `--window-size` 会被钳到 ~512px 宽，**不能用它测小屏**；
+  要真的模拟手机得走 CDP 的 `Emulation.setDeviceMetricsOverride`。
 - 线上部署判定标记：HTML 含 `/personal-portfolio/assets/index-*` = Actions 产物；含 `./script.js` = 旧的
   分支部署（已不再使用）。
 - 体积口径统一用 Node `zlib.gzipSync`（`gzip` 命令行会多写文件名与 mtime，数字不可比）。
