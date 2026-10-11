@@ -43,7 +43,7 @@ COPY api/requirements.txt /app/api/requirements.txt
 RUN pip install --no-cache-dir -r /app/api/requirements.txt
 
 COPY api/app /app/api/app
-COPY web/content /app/web/content
+COPY web/contents /app/web/content
 
 # 镜像里内容在哪儿，就在这儿显式写死：
 # 代码里的默认值（仓库根/web/content）在容器里不成立。
