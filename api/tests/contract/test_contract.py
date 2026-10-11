@@ -5,7 +5,7 @@
 响应模型会把缺省的 repo/live 补成 null，那是刻意的形状选择，
 而「解析结果」这一层应该和构建期产物一模一样。
 
-fixture 怎么来的：`node api/tests/contract/make_fixture.mjs > fixture_js.json`。
+fixture 怎么来的：仓库根跑 `node api/tests/contract/regen_fixture.mjs`。
 它过期了（比如改了 web/content/），测试就该红 —— 那正是它存在的意义。
 """
 

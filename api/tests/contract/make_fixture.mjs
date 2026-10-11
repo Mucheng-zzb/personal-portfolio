@@ -8,7 +8,11 @@
  *   再由 pytest 拿同一份 web/content 跑 Python 侧，逐字段比对。
  *
  * 用法（在仓库根目录）：
- *   node api/tests/contract/make_fixture.mjs > api/tests/contract/fixture_js.json
+ *   node api/tests/contract/regen_fixture.mjs
+ *   —— 本文件只把 JSON 吐到 stdout，落盘交给 regen_fixture.mjs（它明确按 UTF-8 写，
+ *      不经过 shell）。**别写成 `make_fixture.mjs > fixture_js.json`**：PowerShell 的 `>`
+ *      会把文件写成 UTF-16/BOM，之后 pytest 读它报 UnicodeDecodeError。
+ *      单独跑本文件只适合用眼睛看一眼输出，不要拿它落盘。
  *
  * 什么时候要重跑：
  *   · 改了 web/content/** —— fixture 过期，契约测试会红（这是它该做的事）；
