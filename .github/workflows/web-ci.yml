@@ -79,3 +79,32 @@ jobs:
             --max-js-kb 150 \
             --max-css-kb 40 \
             --warn-js-kb 80
+
+      # 两条黑盒冒烟（Playwright）。为什么必须跑在真实浏览器里，而不是用
+      # jsdom 那种「不算慢」的替代品：这两条守的是「关掉 JS」「后端连不上」，
+      # 而 jsdom 的前提就是「有 JS 在跑」—— 用它测禁用 JS，测的是个悖论。
+      #
+      # 浏览器走 Playwright 自带的 chromium（ubuntu runner 上跑这条能直连下载）。
+      # 本机因为 HTTPS 过中间人代理、`playwright install` 会卡在 0%，
+      # 所以本地用 PW_CHANNEL=chrome 改走系统 Chrome；CI 不需要那个开关。
+      - name: 安装 Playwright 浏览器
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      # npm run smoke = 构建 dist/ + 构建 dist-api-down/ + 跑两条冒烟。
+      # 用 npm script 而不是在这里拼命令：本地与 CI 跑的必须是同一条命令，
+      # 否则「本地过了 CI 挂了」的锅就落在这段 YAML 上。
+      - name: 两条黑盒冒烟（禁用 JS / 后端不可达）
+        working-directory: web
+        run: npm run smoke
+
+      # 失败时把 Playwright 的 trace 与截图留成 artifact。
+      # trace 里可以回放每一步的 DOM 快照 —— 线上 CI 只留日志的话，
+      # 「为什么当时那个元素不可见」这类问题基本没法查。
+      - name: 上传 Playwright 报告（仅在失败时）
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/test-results
+          retention-days: 7

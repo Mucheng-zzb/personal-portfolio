@@ -13,7 +13,7 @@ import globals from 'globals';
 
 export default [
   // 产物与依赖不是我们写的，不检查
-  { ignores: ['dist/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'dist-api-down/**', 'node_modules/**', 'test-results/**'] },
 
   js.configs.recommended,
 
@@ -27,7 +27,14 @@ export default [
   },
 
   {
-    files: ['build/**/*.js', 'scripts/**/*.mjs', 'vite.config.js', 'eslint.config.js'],
+    files: [
+      'build/**/*.js',
+      'scripts/**/*.mjs',
+      'tests/**/*.js',
+      'vite.config.js',
+      'playwright.config.js',
+      'eslint.config.js',
+    ],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

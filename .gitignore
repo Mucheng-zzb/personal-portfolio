@@ -4,6 +4,16 @@ node_modules/
 # ---------- 构建产物 ----------
 # 由 npm run build 生成，不入库：部署时现构建（CI 会跑）
 dist/
+# 降级冒烟测试专用的那份产物（VITE_API_BASE 指向死域名），由
+# web/scripts/build-api-down.mjs 生成。它只服务于测试，永远不该被部署。
+dist-api-down/
+
+# ---------- 测试产物 ----------
+# Playwright 的报告与 trace（失败时才有）。它们可能含页面截图，不入库。
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
 
 # ---------- 密钥与环境变量（ADR-010：密钥永不进仓库）----------
 # .env.example 是模板，必须入库；真实的 .env 只放本地和部署平台

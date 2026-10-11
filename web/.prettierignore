@@ -2,6 +2,16 @@
 node_modules
 dist
 
+# 降级冒烟测试专用的那份产物（scripts/build-api-down.mjs 生成）。
+# 不加这条，跑完 npm run smoke 再跑 npm run check 就会红 —— 格式化器会去
+# 检查一份自己刚生成的压缩 JS。这类"检查产物"的错最容易让人放弃跑 check。
+dist-api-down
+
+# Playwright 的报告与 trace（跑完测试才有）。同上：不是源码。
+test-results
+playwright-report
+blob-report
+
 # lock 文件由 npm 生成，格式化它只会制造无意义的 diff
 package-lock.json
 
