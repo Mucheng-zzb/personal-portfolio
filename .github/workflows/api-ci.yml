@@ -57,7 +57,10 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: pytest
-        run: pytest -q
+        # 不加 -q：pytest.ini 的 addopts 里已经有一个 -q，这里再写一个就成了
+        # `-qq` —— 那会把最后的「N passed in …」摘要整行吞掉，日志里只剩一行点。
+        # CI 的日志是要被人翻的，结果行不能省。
+        run: pytest
 
       # ↓ 下面两步与 python 无关，但都守的是「后端不能悄悄坏掉」。
       #   它们放在这里而不是新建一个 workflow：触发条件几乎完全重合，
