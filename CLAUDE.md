@@ -31,7 +31,9 @@
     之后 pytest 报 `UnicodeDecodeError`（已踩两次）。改了 `web/content/**` 或 JS 排序规则后必须重跑。
 
 ## 提交规范
-Conventional Commits，描述用中文：`feat:` `fix:` `docs:` `chore:` `refactor:` `test:`；
+Conventional Commits，描述用中文：`feat:` `fix:` `docs:` `chore:` `refactor:` `test:` `content:`；
+`content:` 专指 `web/content/**` 的内容变更（含随内容一起更新的契约 fixture）—— 它必须与代码改动分得开：
+api CI 的 fixture-sync 检查、D38 的 `.dockerignore` 复盘都依赖这个区分。
 格式化改动必须是独立的 `style:` 提交。
 
 ## 完成标准
