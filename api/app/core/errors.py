@@ -43,11 +43,22 @@ class ApiError(Exception):
     code: str = "internal_error"
     message: str = "服务器内部错误"
 
-    def __init__(self, message: str | None = None, *, log_detail: str | None = None):
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        log_detail: str | None = None,
+        summary: str | None = None,
+    ):
         super().__init__(message or self.message)
         self.message = message or self.message
         #: 只进日志、不进响应的排查线索（比如内容校验的完整错误清单）。
         self.log_detail = log_detail
+        #: 给**诊断端点**用的一句话摘要（含文件名与原因）。
+        #: 普通错误响应不碰它 —— 统一错误体的 `message` 保持通用，
+        #: 免得把内部路径按请求方的心情散到每一个 4xx/5xx 上；
+        #: 而 /health 的意义就是回答「坏在哪」，它需要这一句。
+        self.summary = summary
 
 
 class NotFoundError(ApiError):
@@ -72,8 +83,14 @@ class ContentUnavailableError(ApiError):
     status_code = 503
     code = "content_unavailable"
 
-    def __init__(self, message: str = "内容数据暂不可用", *, log_detail: str | None = None):
-        super().__init__(message, log_detail=log_detail)
+    def __init__(
+        self,
+        message: str = "内容数据暂不可用",
+        *,
+        log_detail: str | None = None,
+        summary: str | None = None,
+    ):
+        super().__init__(message, log_detail=log_detail, summary=summary)
 
 
 def error_body(code: str, message: str, request_id: str) -> dict[str, Any]:

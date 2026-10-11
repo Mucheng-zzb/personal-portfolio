@@ -205,3 +205,92 @@ def test_title_tiebreak_matches_js_code_point_order(temp_content_dir: Path) -> N
     slugs = [p["slug"] for p in store_for(temp_content_dir).list_projects()]
     # 码点序：数(6570) < 本(672C) → pinyin-b 在前（ICU 拼音序会给出相反的答案）
     assert slugs.index("pinyin-b") < slugs.index("pinyin-a")
+
+
+# --------------------------------------------------------------- 文件读不出来（D31）
+#
+# 这组是架构师核验时实测出来的真缺陷：内容文件不是合法 UTF-8 时，
+# read_text 抛的 UnicodeDecodeError 直接穿透 → /projects 500、/health 也 500。
+# 但「文件坏了」是**内容问题**（可自愈），该走 503 content_unavailable；
+# 500 会把运维引去查代码，而真正该做的事是打开那个文件看一眼。
+
+
+def _gbk_bytes(text: str) -> bytes:
+    """把文本按 GBK 编码，并**当场断言**它确实不是合法 UTF-8。
+
+    这个前提不是废话：GBK 里有一部分字节序列**恰好也是合法 UTF-8**
+    （例如「目录」的 GBK 字节 C4 BF C2 BC 解码出来是两个字），
+    不做这个自检，测试可能悄悄测了个「合法文件」还显示通过。
+    """
+    raw = text.encode("gbk")
+    with pytest.raises(UnicodeDecodeError):
+        raw.decode("utf-8")
+    return raw
+
+
+def test_non_utf8_markdown_is_503_not_500(temp_content_dir: Path) -> None:
+    (temp_content_dir / "projects" / "gbk-saved.md").write_bytes(
+        _gbk_bytes(
+            "---\ntitle: 用 GBK 存过的项目\nstatus: done\ndate: 2026-10-11\n"
+            "tags: [中文]\nsummary: 中文摘要\norder: 9\n---\n\n正文\n"
+        )
+    )
+
+    with client_for(temp_content_dir) as client:
+        response = client.get("/api/v1/projects")
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "content_unavailable"
+
+        # /health 必须给得出答案，而不是自己也 500
+        health = client.get("/api/v1/health")
+        assert health.status_code == 503
+        assert health.json()["status"] == "degraded"
+        content = health.json()["dependencies"]["content"]
+        assert content["status"] == "error"
+        # 而且答案要**具体**：哪个文件、什么原因 —— 否则等于没说
+        assert "gbk-saved.md" in content["detail"]
+        assert "UTF-8" in content["detail"]
+
+
+def test_non_utf8_profile_json_is_503(temp_content_dir: Path) -> None:
+    (temp_content_dir / "profile.json").write_bytes(_gbk_bytes('{"name": "周同学"}'))
+
+    with client_for(temp_content_dir) as client:
+        response = client.get("/api/v1/profile")
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "content_unavailable"
+
+        health = client.get("/api/v1/health")
+        assert health.status_code == 503
+        assert "profile.json" in health.json()["dependencies"]["content"]["detail"]
+
+
+def test_read_failure_message_names_the_file_and_the_reason(temp_content_dir: Path) -> None:
+    """报错要能看出**哪个文件**、**什么原因** —— 只说一句「读取失败」等于没说。"""
+    (temp_content_dir / "projects" / "broken.md").write_bytes(b"---\ntitle: \xff\xfe bad\n---\n\n")
+
+    with pytest.raises(ContentUnavailableError) as excinfo:
+        store_for(temp_content_dir).load()
+
+    detail = excinfo.value.log_detail
+    assert "broken.md" in detail  # 哪个文件
+    assert "UTF-8" in detail  # 什么原因
+    assert "字节" in detail
+
+
+def test_health_never_raises_even_on_unexpected_errors(tmp_path: Path, monkeypatch) -> None:
+    """`/health` 永不 500 的最后一道保险。
+
+    内容读取失败现在会被收进 errors（上面几条），所以这条测的是**更外层**：
+    万一 load() 抛的是完全没预料到的异常，health() 也必须返回一张体检单
+    （status: error + 原因 + 堆栈进日志），而不是把 500 抛给探活方。
+    """
+
+    def explode(self) -> None:
+        raise RuntimeError("假设的意外，用来验证 health 的兜底分支")
+
+    monkeypatch.setattr(ContentStore, "_load_from_disk", explode)
+
+    status = store_for(tmp_path).health()  # 关键：不抛
+    assert status["status"] == "error"
+    assert "RuntimeError" in status["detail"]

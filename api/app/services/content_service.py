@@ -38,6 +38,18 @@ class ContentBundle:
     source_dir: Path
 
 
+def _summarize_errors(errors: list[tuple[str, list[str]]], limit: int = 3) -> str:
+    """挑前几处错误拼成一行，给 /health 的体检单用。
+
+    要的是「**哪个文件、什么原因**」—— 只说「内容校验未通过」，
+    那下一个看到它的人还是得去翻日志才知道该打开哪个文件。
+    超出的部分不在这一行里展开：体检单要能一眼看完，全量清单在日志里。
+    """
+    parts = [f"{path}: {messages[0]}" for path, messages in errors[:limit]]
+    extra = "" if len(errors) <= limit else f"（共 {len(errors)} 处，其余见服务端日志）"
+    return "；".join(parts) + extra
+
+
 def _rel(path: Path) -> str:
     """绝对路径 → 相对仓库根的正斜杠路径（`web/content/projects/x.md`）。
 
@@ -60,15 +72,39 @@ class ContentStore:
 
     # ------------------------------------------------------------ 读 + 校验
 
-    def _read_markdown_dir(self, directory: Path) -> list[tuple[Path, str, str]]:
-        """按文件名升序读 .md —— 顺序确定，校验顺序与报错顺序才稳定。"""
+    def _read_text(self, path: Path) -> tuple[str | None, str | None]:
+        """读一个文本文件，**不抛异常**：读不出来就返回一句能定位原因的错误。
+
+        为什么非要接住（D31）：内容文件坏了 —— 存成了 GBK/ANSI、权限不对 ——
+        是**内容问题**，该走 503 `content_unavailable`；让它抛出去就变成
+        500 `internal_error`，运维看到 500 会去翻代码，而真正该做的事是
+        看看那个文件。两类问题混在一个状态码里，等于把排查方向指错。
+
+        文案必须带**具体原因**（哪个字节解码失败），只说一句「读取失败」，
+        等于把「哪个文件、为什么」留给下一个人重新去猜一遍。
+        """
+        try:
+            return path.read_text(encoding="utf-8"), None
+        except UnicodeDecodeError as exc:
+            return None, (
+                f"不是合法的 UTF-8 文本：第 {exc.start} 个字节处解码失败（{exc.reason}）"
+                f" —— 很可能是被 GBK/ANSI 编码存过，用编辑器另存为 UTF-8 即可"
+            )
+        except OSError as exc:
+            return None, f"读不出文件：{exc.strerror or exc}"
+
+    def _read_markdown_dir(self, directory: Path) -> list[tuple[Path, str]]:
+        """按文件名升序**列出** .md —— 顺序确定，校验顺序与报错顺序才稳定。
+
+        只列不读：读文件可能失败，而失败必须变成一条「指向具体文件」的校验错误，
+        所以交给调用方逐个读（见 _load_from_disk）。
+        """
         if not directory.is_dir():
             return []
-        paths = sorted(
-            (p for p in directory.iterdir() if p.is_file() and p.suffix.lower() == ".md"),
-            key=lambda p: p.name,
+        return sorted(
+            ((p, p.name) for p in directory.iterdir() if p.is_file() and p.suffix.lower() == ".md"),
+            key=lambda item: item[1],
         )
-        return [(p, p.name, p.read_text(encoding="utf-8")) for p in paths]
 
     def _load_from_disk(self) -> ContentBundle:
         content_dir = self.settings.content_dir
@@ -85,8 +121,15 @@ class ContentStore:
             seen_slugs: dict[str, str] = {}
             kept: list[dict[str, Any]] = []
 
-            for path, filename, text in self._read_markdown_dir(content_dir / kind):
+            for path, filename in self._read_markdown_dir(content_dir / kind):
                 rel = _rel(path)
+
+                text, read_error = self._read_text(path)
+                if read_error is not None:
+                    # 单独一条：这个文件连读都读不了，后面解析、校验都无从谈起
+                    errors.append((rel, [f"文件: {read_error}"]))
+                    continue
+
                 data, body, error = parser.parse_front_matter(text)
 
                 if error is not None:
@@ -128,6 +171,7 @@ class ContentStore:
             raise ContentUnavailableError(
                 "内容数据校验未通过，服务暂不可用",
                 log_detail=parser.format_errors(errors) + f"\n来源目录：{content_dir}",
+                summary=_summarize_errors(errors),
             )
 
         for kind, collection in parser.MD_COLLECTIONS.items():
@@ -158,7 +202,11 @@ class ContentStore:
             # 但接口没有这个退路：/profile 就是它的全部意义，缺了就是服务不可用。
             errors.append((_rel(path), ["文件不存在（/profile 依赖它）"]))
             return {}
-        data, error = parser.parse_json_file(path.read_text(encoding="utf-8"))
+        text, read_error = self._read_text(path)
+        if read_error is not None:
+            errors.append((_rel(path), [read_error]))
+            return {}
+        data, error = parser.parse_json_file(text)
         if error is not None:
             errors.append((_rel(path), [error]))
             return {}
@@ -172,7 +220,11 @@ class ContentStore:
         if not path.is_file():
             errors.append((_rel(path), ["文件不存在（/now 依赖它）"]))
             return []
-        data, error = parser.parse_json_file(path.read_text(encoding="utf-8"))
+        text, read_error = self._read_text(path)
+        if read_error is not None:
+            errors.append((_rel(path), [read_error]))
+            return []
+        data, error = parser.parse_json_file(text)
         if error is not None:
             errors.append((_rel(path), [error]))
             return []
@@ -250,7 +302,23 @@ class ContentStore:
         except ContentUnavailableError as exc:
             return {
                 "status": "error",
-                "detail": exc.message,
+                # 这里刻意给**具体**的一句（哪个文件、什么原因），
+                # 而普通 503 响应体里的 message 保持通用 —— 见 errors.ApiError.summary
+                "detail": exc.summary or exc.message,
+                "source_dir": str(self.settings.content_dir),
+            }
+        except Exception as exc:  # noqa: BLE001 —— 这里是**故意**兜住一切（D31）
+            # 上面那句「不能自己也坏掉」原来的实现只接住了 ContentUnavailableError，
+            # 而内容读取失败抛的是 UnicodeDecodeError / OSError —— 它会穿出去，
+            # 于是「探活」自己变成 500：最需要它回答「坏在哪」的时候，它失联了。
+            # 所以这里放宽到 Exception：异常进日志（带堆栈），体检单照常返回。
+            logger.exception(
+                "健康检查时内容加载抛出未预期异常",
+                extra={"content_dir": str(self.settings.content_dir)},
+            )
+            return {
+                "status": "error",
+                "detail": f"内容加载时抛出未预期的异常（{type(exc).__name__}）—— 详见服务端日志",
                 "source_dir": str(self.settings.content_dir),
             }
         return {
