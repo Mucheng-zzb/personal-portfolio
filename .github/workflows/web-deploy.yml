@@ -61,9 +61,9 @@ jobs:
         # 而且它的值只在构建时决定 `web/src/lib/api.js` 里那个常量。
         #
         # 取值来源是仓库变量（Settings → Secrets and variables → Actions → Variables），
-        # 名字 API_BASE，例如 https://xxx.onrender.com（**不要带 /api/v1**）。
+        # 名字 API_BASE，例如 https://xxx.example.com（**不要带 /api/v1**）。
         # 没设 → 构建出的站点是纯静态的（一个请求都不发），站点仍然完整可用；
-        # 建好 Render 服务后把它设上，再手动跑一次这个 workflow 即可。
+        # 建好后端服务（SnapDeploy）后把它设上，再手动跑一次这个 workflow 即可。
         env:
           VITE_API_BASE: ${{ vars.API_BASE }}
         run: |

@@ -464,9 +464,9 @@ https://你的用户名.github.io/personal-portfolio/
 后端挂了、还没建、或者你压根没配地址，站点读起来完全一样 —— 这是硬要求，不是妥协。
 
 - 后端代码在 `api/`（FastAPI，只读接口，7 个端点）。部署后 `/docs` 有自动生成的文档。
-- **要在 Render 上怎么点**：见 `api/README.md` 的「部署到 Render」一节（那一步只能你来点）。
+- **要在 SnapDeploy 上怎么点**：见 `api/README.md` 的「部署到 SnapDeploy」一节（那一步只能你来点）。
 - 前端在**构建期**通过仓库变量知道后端地址：
-  Settings → Secrets and variables → Actions → **Variables** → `API_BASE`（值形如 `https://xxx.onrender.com`，不带 `/api/v1`）。
+  Settings → Secrets and variables → Actions → **Variables** → `API_BASE`（值是后端域名，比如平台给你的 `https://xxx.xxx`，不带 `/api/v1`）。
   **没设 = 纯静态站**，一个请求都不发，也不会出现任何「不可用」提示。
 - 拿到实时数据时，页脚会短暂显示「实时数据已同步」；后端不可用时页脚常驻
   「实时数据不可用」，内容回退到构建期内置的那份，**控制台只打 warning、不刷红字**。
