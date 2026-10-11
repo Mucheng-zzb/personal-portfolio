@@ -384,8 +384,20 @@ data: {"type":"done","cached":false}
 | 404 | `not_found` | slug 不存在 |
 | 422 | `validation_error` | 字段校验失败（附字段级信息） |
 | 429 | `rate_limited` | 触发限流（返回 `Retry-After`） |
+| 503 | `content_unavailable` | 内容缺失或校验失败（服务端、临时、可自愈） |
 | 503 | `ai_unavailable` | LLM 未配置/熔断/超时 |
 | 500 | `internal_error` | 未预期错误（不泄漏堆栈） |
+
+> **统一错误体有一个显式例外**：`/api/v1/health` 是**唯一**在非 2xx 时返回「自身报告」
+> 而不是 `{ error: { … } }` 的端点 —— 内容坏掉时它返回 503 + 体检单
+> （`{ status, version, env, dependencies, request_id }`）。
+> 理由：它的首要用户是**定时探活**（Render / UptimeRobot 之类），它们只看状态码；
+> 返回 200 再在 body 里写「其实我坏了」，等于把这个检查做成摆设。
+>
+> `content_unavailable` 与 500 的分界：**内容坏了是 500 还是 503？**
+> 内容缺失、校验没过、文件读不出来（非 UTF-8 / IO 错误）一律 **503** ——
+> 它们是「服务端的事，但可自愈，改好内容或补上文件就好」；500 留给
+> 「代码出了没预料到的错」。运维看到这两个数字要做的事完全不同。
 
 ---
 

@@ -421,7 +421,8 @@ npm run preview        # 本地预览构建产物
 
 # 后端
 cd api
-pip install -r requirements.txt
+pip install -r requirements.txt        # 运行时依赖
+pip install -r requirements-dev.txt    # 跑测试用（pytest / httpx2）；生产镜像不装
 uvicorn app.main:app --reload
 pytest -q
 pip-audit
