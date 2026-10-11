@@ -78,8 +78,8 @@ function mergeNoteBodies(liveNotes) {
  */
 export async function startLiveSync(onStatus = () => {}) {
   if (!apiEnabled) {
-    // 没配 VITE_API_BASE：站点就是纯静态的，不发请求、也不显示「不可用」——
-    // 没有后端可依赖，就谈不上「实时数据不可用」。
+    // 没配 VITE_API_BASE：站点就是纯静态的，不发请求、也不显示提示 ——
+    // 没有后端可依赖，就谈不上「这份数据是快照」。
     onStatus('disabled');
     return { ok: false, reason: 'disabled' };
   }

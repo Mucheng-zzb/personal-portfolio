@@ -5,7 +5,9 @@
  *   disabled —— 没配后端。**不显示**：站点就是静态的，谈不上「不可用」
  *   loading  —— 「正在获取实时数据…」+ 一个微光条（骨架感的进度信号）
  *   ok       —— 「实时数据已同步」，2.5 秒后自动收起
- *   failed   —— 「实时数据不可用」，常驻 ← 这是硬验收要求的那一条
+ *   failed   —— 「显示的是构建时快照」，常驻 ← 这是硬验收要求的那一条
+ *               （文案于 v0.5.1 从「实时数据不可用」改过来：容器睡着是常态，
+ *                几乎每个访客都会看到它，而「不可用」读起来像站点坏了 —— 内容其实一字不差）
  *
  * 为什么 loading 要有东西显示：免费实例冷启动要 30–60 秒。
  * 首屏内容已经立刻渲染了（不等后端），但如果没有一点动静，用户会以为
@@ -55,9 +57,9 @@ export function setLiveStatus(status, detail = {}) {
     return;
   }
 
-  // failed
+  // failed：可见文案说「这是什么」，技术原因放 title（见 D50）
   box.removeAttribute('aria-busy');
-  text.textContent = '实时数据不可用';
+  text.textContent = '显示的是构建时快照';
   const why = typeof detail.error?.toString === 'function' ? detail.error.toString() : '';
   box.title = why ? `正在显示构建期内置内容（${why}）` : '正在显示构建期内置内容';
 }
