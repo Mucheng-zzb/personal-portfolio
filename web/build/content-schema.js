@@ -162,9 +162,7 @@ export function parseFrontMatter(text) {
   // （中间行没事：它们的 \r 后面跟着 \n，是一个完整的换行符，YAML 会吃掉），
   // 于是 `draft: false` 会被解析成字符串 "false\r" 而不是布尔值。
   // 这在 Windows 上写出来的文件里是常态，不是异常输入。
-  const src = text
-    .replace(/^\uFEFF/, '')
-    .replace(/\r\n?/g, '\n');
+  const src = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
 
   if (!src.startsWith('---')) {
     return { data: null, body: '', error: '文件必须以 --- 开头（front-matter 分隔符）' };
@@ -190,7 +188,10 @@ export function parseFrontMatter(text) {
   }
 
   const yamlText = lines.slice(0, endIndex).join('\n');
-  const body = lines.slice(endIndex + 1).join('\n').trim();
+  const body = lines
+    .slice(endIndex + 1)
+    .join('\n')
+    .trim();
 
   let data;
   try {
@@ -493,7 +494,11 @@ export function validateContent(files, options = {}) {
 
       if (parsed.data) {
         // 只有声明了 withBody 的集合才带正文，避免 projects 的负载跟着变大
-        kept.push(collection.withBody ? { slug, ...parsed.data, body: parsed.body } : { slug, ...parsed.data });
+        kept.push(
+          collection.withBody
+            ? { slug, ...parsed.data, body: parsed.body }
+            : { slug, ...parsed.data },
+        );
       }
     }
 
