@@ -1,10 +1,11 @@
 /* ============================================================
    个人主页 —— 入口脚本
    ------------------------------------------------------------
-   这个文件一共做 8 件事，每件事都是一个独立的函数：
+   这个文件一共做 9 件事，每件事都是一个独立的函数：
      renderContent()  —— 把 web/content/ 的数据渲染进页面（v0.2-C 起）
      initRouter()     —— hash 路由：在首页 / 笔记 / 项目三个视图间切换（v0.4-A 起）
      initTheme()      —— 明暗主题切换按钮（v0.4-A 起）
+     initLiveData()   —— 拉后端实时数据，到了就替换、失败就保持内置内容（v0.5-B 起）
      initReveal()     —— 内容滚动到视野里时淡入
      initActiveNav()  —— 高亮当前所在的导航项
      initYear()       —— 自动更新页脚年份
@@ -15,12 +16,17 @@
    加 defer 后，脚本会等 HTML 全部解析完再执行，
    所以下面能放心地直接操作页面元素，不用套 DOMContentLoaded。
 
-   注意：renderContent() 必须排在 initReveal() 前面 ——
-   内容渲染会改变页面高度，先渲染完再让 IntersectionObserver 去观察，
-   否则首屏元素的淡入判定会基于错误的位置。
+   注意顺序：
+     · renderContent() 必须排在 initReveal() 前面 ——
+       内容渲染会改变页面高度，先渲染完再让 IntersectionObserver 去观察，
+       否则首屏元素的淡入判定会基于错误的位置。
+     · initLiveData() 排在【最后】：它是纯增强（后端挂了也照样跑），
+       不该占用首屏可交互的时间。它是异步的，不 await。
    ============================================================ */
 
-import { profile, now, projects, notes } from './src/lib/content.js';
+import { getContent, onChange, startLiveSync } from './src/lib/live.js';
+import { api, apiEnabled } from './src/lib/api.js';
+import { setLiveStatus } from './src/ui/live-status.js';
 import { renderProfile } from './src/ui/profile.js';
 import { renderHeroChips } from './src/ui/hero.js';
 import { renderAbout } from './src/ui/about.js';
@@ -50,6 +56,11 @@ document.documentElement.classList.add('js');
    renderProfile() 只覆写这几处的文字，不重建节点。
    ============================================================ */
 function renderContent() {
+  // 内容从 live.js 拿，不再直接 import 构建期数据：
+  // 首批渲染时它就是构建期内置内容（同步就绪，不等后端），
+  // 后端数据到了之后 live.js 会换掉它并通知我们重画（见 refreshActiveView）。
+  const { profile, now, projects, notes } = getContent();
+
   renderProfile(profile);
   renderHeroChips(profile?.heroChips);
   renderAbout(profile);
@@ -153,6 +164,89 @@ function scrollToAnchor(hash) {
   window.scrollTo({ top, behavior: 'smooth' });
 }
 
+/**
+ * 当前停在哪个路由。实时数据到了之后要「按当前视图重画一次」，
+ * 所以得记住它（applyRoute 是路由驱动的，那时不会再被调用）。
+ */
+let currentRoute = { name: 'home' };
+
+/**
+ * 重画当前视图的内容。**不切视图、不滚动。**
+ *
+ * 与 applyRoute 的区别就在这两个「不」：实时数据通常在页面加载完约 1 秒后到，
+ * 那时用户可能已经滚到「技能」或点进了 #/projects —— 再走一遍 applyRoute
+ * 会把他弹回顶部，那是很讨厌的体验。
+ */
+function refreshActiveView() {
+  const content = getContent();
+
+  if (currentRoute.name === 'projects') {
+    renderProjectList(document.getElementById('projectListView'), content.projects, {
+      status: currentRoute.status,
+      tag: currentRoute.tag,
+    });
+    return;
+  }
+
+  if (currentRoute.name === 'notes') {
+    renderNotesList(document.getElementById('notesListView'), content.notes, {
+      activeTag: currentRoute.tag,
+    });
+    return;
+  }
+
+  if (currentRoute.name === 'note') {
+    openNoteDetail(document.getElementById('noteDetailView'), currentRoute.slug);
+    return;
+  }
+
+  if (currentRoute.name === 'resume') {
+    renderResume(document.getElementById('resumeBody'), {
+      profile: content.profile,
+      projects: content.projects,
+    });
+    return;
+  }
+
+  renderContent();
+}
+
+/**
+ * 打开一篇笔记详情。
+ *
+ * 构建期就有正文的（绝大多数）：直接渲染，一次请求都不发。
+ * 只存在于后端的新笔记：`/notes` 列表接口按契约【不含正文】
+ * （ARCHITECTURE §6，正文在 /notes/{slug}），所以这时才按需取。
+ * 取之前先渲染一句「正在获取正文…」，不让详情页停在空白上。
+ */
+async function openNoteDetail(container, slug) {
+  const content = getContent();
+  const note = content.notes.find((item) => item.slug === slug);
+
+  // 构建期有正文 / 笔记不存在 / 后端没启用 —— 三种都用现成的渲染
+  if (!note || note.body !== undefined || !apiEnabled) {
+    renderNoteDetail(container, content.notes, slug);
+    return;
+  }
+
+  note.body = '_（正在获取正文…）_';
+  renderNoteDetail(container, content.notes, slug);
+
+  try {
+    const detail = await api.note(slug);
+    Object.assign(note, detail);
+  } catch (err) {
+    // 正文取不到就明说，而不是给一个空白正文让人以为这篇是空的
+    note.body = '> 正文暂时取不到（后端不可用），稍后刷新重试。';
+    console.warn(`[api] 笔记正文取不到 —— ${err?.toString?.() ?? err}`);
+  }
+
+  // 期间用户可能已经跳走，别把别的页面重画掉
+  if (currentRoute.name === 'note' && currentRoute.slug === slug) {
+    renderNoteDetail(container, getContent().notes, slug);
+  }
+}
+
 /** 路由 → 视图。route 为 null 表示「这次 hash 不归路由管」（多半是个锚点）。 */
 function applyRoute(route, hash) {
   if (!document.querySelector('main')) return;
@@ -163,8 +257,11 @@ function applyRoute(route, hash) {
       showView('home');
       scrollToAnchor(hash);
     }
+    currentRoute = { name: 'home' };
     return;
   }
+
+  currentRoute = route;
 
   if (route.name === 'home') {
     showView('home');
@@ -173,6 +270,7 @@ function applyRoute(route, hash) {
 
   // 换视图后回到顶部，否则会停在上一个视图的滚动位置
   const goToTop = () => window.scrollTo(0, 0);
+  const content = getContent();
 
   if (route.name === 'notes' || route.name === 'note') {
     showView('notes');
@@ -184,9 +282,9 @@ function applyRoute(route, hash) {
     if (detailEl) detailEl.hidden = isList;
 
     if (isList) {
-      renderNotesList(listEl, notes, { activeTag: route.tag });
+      renderNotesList(listEl, content.notes, { activeTag: route.tag });
     } else {
-      renderNoteDetail(detailEl, notes, route.slug);
+      openNoteDetail(detailEl, route.slug);
     }
 
     goToTop();
@@ -195,7 +293,7 @@ function applyRoute(route, hash) {
 
   if (route.name === 'projects') {
     showView('projects');
-    renderProjectList(document.getElementById('projectListView'), projects, {
+    renderProjectList(document.getElementById('projectListView'), content.projects, {
       status: route.status,
       tag: route.tag,
     });
@@ -205,7 +303,10 @@ function applyRoute(route, hash) {
 
   if (route.name === 'resume') {
     showView('resume');
-    renderResume(document.getElementById('resumeBody'), { profile, projects });
+    renderResume(document.getElementById('resumeBody'), {
+      profile: content.profile,
+      projects: content.projects,
+    });
     goToTop();
   }
 }
@@ -430,9 +531,40 @@ function initSmoothScrollFallback() {
 }
 
 /* ============================================================
+   6. 后端实时数据（v0.5-B）
+   ------------------------------------------------------------
+   首屏【不等】它：上面 renderContent() 已经用构建期内容把页面画好了，
+   这里只做「数据到了再替换」。
+
+   失败是**预期路径**，不是异常：Render 免费实例闲置 15 分钟休眠、
+   冷启动约 1 分钟，而我们的超时是 3 秒 —— 冷启动时几乎必然会走失败分支。
+   所以：
+     · 内容保持构建期那份（页面完整可读，不白屏、不转圈）
+     · 页脚显示「实时数据不可用」
+     · 控制台只打 warning，绝不打 error
+   ============================================================ */
+function initLiveData() {
+  // 内容被换成实时那份之后，重画当前视图（不切视图、不滚动）
+  onChange(refreshActiveView);
+
+  // 状态提示自己出错不该影响取数据，所以这里再包一层
+  const reportStatus = (status, detail) => {
+    try {
+      setLiveStatus(status, detail);
+    } catch (err) {
+      console.warn('[ui] 实时数据状态提示更新失败：', err);
+    }
+  };
+
+  // 不 await：这是增强，不该占住启动流程
+  startLiveSync(reportStatus);
+}
+
+/* ============================================================
    启动
    每个 init 都单独包一层 try/catch：万一某一块出问题，
    其他功能照常工作，而不是整个脚本停摆。
+   initLiveData 放最后：它是纯增强，排在所有「页面本来就该有」的功能之后。
    ============================================================ */
 [
   renderContent,
@@ -443,6 +575,7 @@ function initSmoothScrollFallback() {
   initYear,
   initCopyEmail,
   initSmoothScrollFallback,
+  initLiveData,
 ].forEach((init) => {
   try {
     init();

@@ -431,6 +431,15 @@
     <!-- ===== 页脚 ===== -->
     <footer class="footer">
       <div class="container footer__inner">
+        <!-- 实时数据状态（v0.5-B）。默认 hidden：
+             禁用 JS、或后端没配（VITE_API_BASE 为空）时，这里什么都不显示 ——
+             页脚不该出现一句「不可用」吓人，那只是在说我们自己没接后端。
+             文案与显隐全部由 src/ui/live-status.js 控制。
+             role=status + aria-live：状态变化时屏幕阅读器会念出来。 -->
+        <p class="live-status" id="liveStatus" role="status" aria-live="polite" hidden>
+          <span class="live-status__pulse" aria-hidden="true"></span>
+          <span class="live-status__text"></span>
+        </p>
         <p>
           © <span id="year">2026</span> <span id="footerName">周同学</span>
           <span id="footerNote">· 用 HTML / CSS / JavaScript 手写</span>

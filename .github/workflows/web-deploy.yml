@@ -55,8 +55,20 @@ jobs:
       # working-directory 只对这一步生效，所以 npm ci 和 npm run build 写在同一个 run 里。
       - name: Install and build
         working-directory: web
+        # 后端地址在【构建期】注入（Vite 的 import.meta.env）。
+        #
+        # 为什么不写死在代码里：前后端不同源、后端还可能换域名；
+        # 而且它的值只在构建时决定 `web/src/lib/api.js` 里那个常量。
+        #
+        # 取值来源是仓库变量（Settings → Secrets and variables → Actions → Variables），
+        # 名字 API_BASE，例如 https://xxx.onrender.com（**不要带 /api/v1**）。
+        # 没设 → 构建出的站点是纯静态的（一个请求都不发），站点仍然完整可用；
+        # 建好 Render 服务后把它设上，再手动跑一次这个 workflow 即可。
+        env:
+          VITE_API_BASE: ${{ vars.API_BASE }}
         run: |
           npm ci
+          echo "VITE_API_BASE=${VITE_API_BASE:-（未设置 → 站点按纯静态构建）}"
           npm run build
 
       # 传 web/dist，不是 web/。别改成 web/，否则 Pages 上是一堆源码。

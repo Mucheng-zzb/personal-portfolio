@@ -926,6 +926,50 @@ html.theme-light .theme-toggle__sun {
   color: var(--text-muted);
 }
 
+/* 实时数据状态（v0.5-B）。四态里只有 loading / failed 会显形。
+   注意 [hidden] 必须自己写：下面那条 display:flex 的优先级高于浏览器
+   给 [hidden] 的默认 display:none，不写就会「hidden 了还显示」。 */
+.live-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  flex-basis: 100%; /* 独占一行，别挤在 © 和「回到顶部」中间 */
+}
+
+.live-status[hidden] {
+  display: none;
+}
+
+/* 微光条：一个「正在动」的信号，不是占位骨架（内容此刻已经渲染好了） */
+.live-status__pulse {
+  width: 44px;
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--text-faint), transparent);
+  background-size: 200% 100%;
+  animation: live-status-pulse 1.2s ease-in-out infinite;
+}
+
+/* 失败态不给微光：它不再「正在发生」，常驻的一句提示就够了 */
+.live-status[data-state='failed'] .live-status__pulse {
+  display: none;
+}
+
+/* 失败时用更实的颜色，和「正在获取」区分开（--text-muted 比 faint 更深，对比度更安全） */
+.live-status[data-state='failed'] .live-status__text {
+  color: var(--text-muted);
+}
+
+@keyframes live-status-pulse {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
 /* ---- 4.10 笔记：列表 / 详情 / 正文排版 ---- */
 
 /* 标签筛选条。用链接而不是按钮：筛选结果也有可复制的 URL（见 src/ui/notes.js） */
