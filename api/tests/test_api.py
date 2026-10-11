@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from app.services.content_service import ContentStore
 
@@ -50,6 +51,64 @@ def test_health_reports_dependency_status(client) -> None:
 
 def test_health_reload_query_forces_reread(client) -> None:
     assert client.get("/api/v1/health?reload=true").status_code == 200
+
+
+# --------------------------------------------------------------- /health 的路径暴露（D33）
+
+
+def _health_content_detail(client) -> dict:
+    return client.get("/api/v1/health").json()["dependencies"]["content"]
+
+
+def test_health_keeps_absolute_path_locally(client) -> None:
+    """本地/测试：给绝对路径，一眼看出读的是哪份内容。"""
+    assert Path(_health_content_detail(client)["source_dir"]).is_absolute()
+
+
+def test_health_hides_absolute_path_in_production(temp_content_dir) -> None:
+    """ENV=production：只给相对仓库根的路径，绝不吐绝对路径。
+
+    判据用的是**不变式**而不是某个固定字符串：被测目录可能在仓库根之下
+    （给相对路径），也可能不在（干脆不给路径）—— 两种都行，**绝对路径不行**。
+    顺带钉住架构师担心的那件事：不能把本机用户名带出去。
+    """
+    from fastapi.testclient import TestClient
+
+    from app.core.config import DEFAULT_CORS_ORIGINS, Settings
+    from app.main import create_app
+
+    app = create_app(
+        Settings(env="production", content_dir=temp_content_dir, cors_origins=DEFAULT_CORS_ORIGINS)
+    )
+    with TestClient(app) as production_client:
+        reported = _health_content_detail(production_client)["source_dir"]
+
+    assert not Path(reported).is_absolute(), reported
+    assert str(temp_content_dir) not in reported
+    # 真正的威胁是「主机目录结构 / 本机用户名被写进公网响应」：
+    # 绝对路径一定含 home 目录（仓库就在它下面），这条能抓住回归。
+    # 不拿 Path.home().name 单独断言 —— 那会被 pytest 自己的临时目录名
+    # （api/pytest-of-<用户名>/…）误伤，而那不是主机路径泄漏。
+    assert str(Path.home()) not in reported
+
+
+def test_health_hides_path_in_production_even_when_content_is_broken(tmp_path) -> None:
+    """内容坏了走 error 分支时，同样不许暴露绝对路径（D33 覆盖两条返回路径）。"""
+    from fastapi.testclient import TestClient
+
+    from app.core.config import DEFAULT_CORS_ORIGINS, Settings
+    from app.main import create_app
+
+    app = create_app(
+        Settings(env="production", content_dir=tmp_path / "nope", cors_origins=DEFAULT_CORS_ORIGINS)
+    )
+    with TestClient(app) as production_client:
+        response = production_client.get("/api/v1/health")
+        assert response.status_code == 503
+        detail = response.json()["dependencies"]["content"]
+
+    assert detail["status"] == "error"
+    assert not Path(detail["source_dir"]).is_absolute(), detail["source_dir"]
 
 
 # --------------------------------------------------------------- 六个内容端点

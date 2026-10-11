@@ -295,6 +295,22 @@ class ContentStore:
 
     # ------------------------------------------------------------ 健康检查
 
+    def _reported_source_dir(self) -> str:
+        """体检单里报的内容目录（D33）。
+
+        本地给**绝对路径**：一眼看出读的是哪份内容，排查最省事。
+        生产环境**只给相对仓库根的路径**（容器里就是 `web/content`）——
+        绝对路径会把容器/主机的目录结构写进公网响应，本机还会带出用户名，
+        而它对运维的价值有限（内容在容器哪儿，是部署时就定死的事）。
+        万一内容真在仓库根之外，就干脆不给路径，只说明「已隐藏」。
+        """
+        if self.settings.is_local:
+            return str(self.settings.content_dir)
+        try:
+            return self.settings.content_dir.relative_to(REPO_ROOT).as_posix()
+        except ValueError:
+            return "（不在仓库根之下，路径已隐藏）"
+
     def health(self) -> dict[str, Any]:
         """依赖状态。**不抛异常**：健康检查必须能回答「坏在哪」，而不是自己也坏掉。"""
         try:
@@ -305,7 +321,7 @@ class ContentStore:
                 # 这里刻意给**具体**的一句（哪个文件、什么原因），
                 # 而普通 503 响应体里的 message 保持通用 —— 见 errors.ApiError.summary
                 "detail": exc.summary or exc.message,
-                "source_dir": str(self.settings.content_dir),
+                "source_dir": self._reported_source_dir(),
             }
         except Exception as exc:  # noqa: BLE001 —— 这里是**故意**兜住一切（D31）
             # 上面那句「不能自己也坏掉」原来的实现只接住了 ContentUnavailableError，
@@ -319,12 +335,12 @@ class ContentStore:
             return {
                 "status": "error",
                 "detail": f"内容加载时抛出未预期的异常（{type(exc).__name__}）—— 详见服务端日志",
-                "source_dir": str(self.settings.content_dir),
+                "source_dir": self._reported_source_dir(),
             }
         return {
             "status": "ok",
             "detail": "内容已加载",
-            "source_dir": str(bundle.source_dir),
+            "source_dir": self._reported_source_dir(),
             "projects": len(bundle.projects),
             "notes": len(bundle.notes),
             "loaded_at": bundle.loaded_at.isoformat(timespec="seconds"),
