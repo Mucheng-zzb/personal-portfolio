@@ -45,7 +45,7 @@ def test_health_reports_dependency_status(client) -> None:
     content = body["dependencies"]["content"]
     assert content["status"] == "ok"
     assert content["projects"] == 4
-    assert content["notes"] == 2
+    assert content["notes"] == 3
     assert body["request_id"] == response.headers["X-Request-Id"]
 
 
@@ -183,12 +183,13 @@ def test_project_detail(client) -> None:
 
 def test_notes_list_has_no_body_but_detail_does(client) -> None:
     listed = client.get("/api/v1/notes").json()
-    assert listed["total"] == 2
+    assert listed["total"] == 3
     assert "body" not in listed["items"][0]
-    # 两篇同一天，标题按码点序兜底：'p'（print…）排在「函…」前面
+    # 三篇同一天，标题按码点序兜底：'p'(0x70) < 函(U+51FD) < 变(U+53D8)
     assert [n["slug"] for n in listed["items"]] == [
         "print-is-not-return",
         "function-definition-vs-call",
+        "assignment-is-not-copy",
     ]
 
     detail = client.get("/api/v1/notes/function-definition-vs-call").json()

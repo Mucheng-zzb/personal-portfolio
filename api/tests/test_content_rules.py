@@ -62,10 +62,11 @@ def test_draft_note_never_appears_anywhere(temp_content_dir: Path) -> None:
 
     with client_for(temp_content_dir) as client:
         listed = client.get("/api/v1/notes").json()
-        assert listed["total"] == 2
+        assert listed["total"] == 3
         assert [n["slug"] for n in listed["items"]] == [
             "print-is-not-return",
             "function-definition-vs-call",
+            "assignment-is-not-copy",
         ]
         assert client.get("/api/v1/notes/draft-note").status_code == 404
         # 整份内容仍然健康：草稿的字段错误没有把服务拖下水
@@ -78,11 +79,12 @@ def test_non_draft_note_appears_and_sorts_by_date_desc(temp_content_dir: Path) -
     )
     with client_for(temp_content_dir) as client:
         items = client.get("/api/v1/notes").json()["items"]
-        # 2026-10-12 比 2026-10-11 新 → 排前面；后两篇同一天，按标题码点序兜底
+        # 2026-10-12 比 2026-10-11 新 → 排前面；后三篇同一天，按标题码点序兜底
         assert [n["slug"] for n in items] == [
             "newer-note",
             "print-is-not-return",
             "function-definition-vs-call",
+            "assignment-is-not-copy",
         ]
 
 

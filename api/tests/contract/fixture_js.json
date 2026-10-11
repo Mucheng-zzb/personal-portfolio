@@ -9,6 +9,7 @@
       "web/content/projects/personal-portfolio.md"
     ],
     "notes": [
+      "web/content/notes/assignment-is-not-copy.md",
       "web/content/notes/function-definition-vs-call.md",
       "web/content/notes/print-is-not-return.md"
     ],
@@ -177,6 +178,17 @@
         "summary": "def 只是给函数登记了身份，所以加 () 才能真正执行，不加 return 也只会拿到 None。",
         "draft": false,
         "body": "一句话结论：def 只是登记信息，加个 () 才会执行；如果只干活不汇报，默认返回 None。\n\n## 我遇到的问题\n\n刚开始学习 Python 的时候，我写了个函数，运行整个程序时，屏幕却没反应。有时又会突然蹦出一个 None，让我真的是一脸懵。\n\n## 我以为对的 / 原来的做法\n\n我以为写了 def greet():，程序跑到这里就会自动执行打印。\n\n我以为 greet 和 greet() 是一回事，写哪个都可以。\n\n我以为在同一个文件里写两个同名的 def，Python 会报错。结果是用最后一个覆盖了前面的，导致改了半天代码却不生效。\n\n## 现在怎么做\n\n**1. def 只是登记（相当于把工具放进了工具箱），必须加 () 才是真正调用。**\n\n我先写了 `def greet():`，然后在下面写了一行 `greet`，运行时屏幕上是空的；把那一行改成 `greet()` 之后，才打印出 `Hello_World`。\n\n```python\ndef greet():\n    print(\"Hello_World\")\n\nprint(\"--- 还没调用 greet ---\")\ngreet                 # 没加括号：屏幕上什么都不会出现\nprint(\"--- 写了 greet() 之后 ---\")\ngreet()               # 加了括号：这里才打印 Hello_World\n```\n\n**2. print 只是展示，如果没写 return，它默认交回 None。**\n\n`get_greet()` 明明打印了 `Hello_World`，但我写 `result = get_greet()` 再 `print(result)`，屏幕上先出现 `Hello_World`、紧接着出现 `None`——两行输出，说明\"打印出来\"和\"交回来\"是两件事。\n\n```python\ndef get_greet():\n    print(\"Hello_World\")   # 只打印，没有 return\n\nresult = get_greet()\nprint(result)              # 打印出 None\n```\n\n**3. Python 中重复定义同名函数不会报错，后面的会覆盖前面的。**\n\n我在同一个文件里写了两个同名函数，第一个打印 `Hello_World`、第二个打印 `Hello_Again`，Python 一句提示都没有；调用时跑的是第二个。\n\n```python\ndef greet():\n    print(\"Hello_World\")\n\ndef greet():\n    print(\"Hi\")\n\ngreet()   # 没有报错，打印的是 Hi\n```\n\n## 代价与边界\n\n最常见的是忘了写括号，特别是把函数当参数传递时。其次是改了函数没生效，排查半天，其实是被后面的同名定义覆盖了。最后是 print 和 return 混用，导致拿到 None。\n\n最致命的是忘了写括号，它让你误以为程序坏了。\n\n## 一句话总结\n\n看到 None，先回去看看函数里有没有写 return；函数不跑，先找找是不是只定义了没有加 ()。"
+      },
+      {
+        "slug": "assignment-is-not-copy",
+        "title": "变量赋值本质：是贴标签，不是复印机",
+        "date": "2026-10-11",
+        "tags": [
+          "Python"
+        ],
+        "summary": "只贴标签、不复制；只有可变的东西才会“改一个另一个也变”",
+        "draft": false,
+        "body": "## 一句话结论：\n\n`a = b` 只是给同一个对象贴了两个标签，只有可变对象才会出现“改一个另一个也变”。\n\n## 我遇到的问题\n\n我给列表起了第二个名字，往新名字里加东西，老名字也跟着变。\n\n可我把新名字换成别的列表时，老名字又不动了——到底哪个才算“复制”？\n\n## 我以为对的 / 原来的做法\n\n我原以为 `a = b` 是复制，以为两个变量会“互相改变”，甚至以为数字也会这样。\n\n现在我知道其实是：`=` 只做一件事——让左边的名字指向右边那个东西。它不复制任何东西，也不会把两个名字绑在一起。\n\n## 现在怎么做\n\n**1. 贴标签 vs 造新盒子**\n\n`a = [1,2]` 是造一只新盒子；`b = a` 是给同一只盒子再贴一张标签；`c = list(a)` 才是造一只新盒子。用 `is` 一判就知道是哪一种：\n\n```python\na = [1, 2]\nb = a            # 贴标签：两个名字，一只箱子\nprint(a is b)    # True\n\nc = list(a)      # 造一只新盒子，把内容装进去\nprint(a is c)    # False\n```\n\n```\nTrue\nFalse\n```\n\n**2. 改名字 vs 改东西**\n\n这是这篇最关键的一幕：`b.append(3)` 改的是箱子本身，所以 `a` 也跟着变；而 `y = 6` 只是把标签 `y` 挪到别的东西上，`x` 动都不动。\n\n```python\na = [1, 2]\nb = a\nb.append(3)      # 改箱子本身\nprint(\"a =\", a)\nprint(\"b =\", b)\n\nx = 5\ny = x\ny = 6            # 只是把标签 y 挪到 6 上\nprint(\"x =\", x, \"| y =\", y)\n```\n\n```\na = [1, 2, 3]\nb = [1, 2, 3]\nx = 5 | y = 6\n```\n\n反过来也能验证：我把标签 `b` 挪到另一只箱子上，`a` 一点都没变——两个名字之间没有任何绑定关系。\n\n```python\na = [1, 2]\nb = a\nb = [9]          # 把 b 挪到另一只箱子上\nprint(\"a =\", a)\nprint(\"b =\", b)\n```\n\n```\na = [1, 2]\nb = [9]\n```\n\n**3. 真要复制，就自己造一只新盒子**\n\n用 `list(c)` 或者 `c.copy()`。判据是 `is` 打印 `False`——那就说明它真的是两个东西。\n\n```python\na = [1, 2]\nc = list(a)\nc.append(3)\nprint(\"a =\", a)\nprint(\"c =\", c)\nprint(a is c)\n```\n\n```\na = [1, 2]\nc = [1, 2, 3]\nFalse\n```\n\n## 代价与边界\n\n最实用的代价是：把列表传进函数，函数里的 `append` 会静默改掉调用者那只箱子。\n\n```python\ndef add_item(bag):\n    bag.append(\"apple\")\n\nmine = [\"pear\"]\nadd_item(mine)\nprint(\"mine =\", mine)\n```\n\n```\nmine = ['pear', 'apple']\n```\n\n它危险在：不报错、静默改变，容易引发难以追踪的 bug。\n\n另外数字和字符串没有这个现象，很容易只记住一半。\n\n## 一句话总结\n\n变量名只是标签，`=` 是贴标签，不是复印机。"
       }
     ]
   }
