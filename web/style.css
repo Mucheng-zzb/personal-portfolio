@@ -40,10 +40,17 @@
   --border: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.18);
 
-  /* 文字：主文字 / 次要说明 / 最淡的辅助信息 */
+  /* 文字：主文字 / 次要说明 / 最淡的辅助信息
+
+     --text-faint 从 #6b7488 提亮到 #7c8698（v0.4-A）：前者对页面底 #0a0b10 只有
+     4.19，够不上 WCAG AA 的 4.5，而它正是页脚（#year / #footerName / #footerNote /
+     a.footer__top）用的颜色 —— 那是 BASELINE 记下的唯一失分项。
+     新值在各处实际底色上的对比度：#0a0b10 → 5.35、卡片 #111217 → 5.10、
+     标签片 #131418 → 5.01、表头 #14151a → 4.97，全部过线。
+     改这个值前请重新算一遍这几个底（脚本见 BASELINE §3）。 */
   --text: #e9ecf3;
   --text-muted: #98a2b6;
-  --text-faint: #6b7488;
+  --text-faint: #7c8698;
 
   /* 主题色：科技感的蓝 → 紫渐变 */
   --accent-1: #4f7cff;
@@ -1363,6 +1370,15 @@ html.theme-light .theme-toggle__sun {
   transition:
     opacity 0.7s ease,
     transform 0.7s ease;
+}
+
+/* 键盘 Tab 进来时立刻显形。
+   只有 IntersectionObserver 的话，「焦点已经落在一个 opacity:0 的元素上」这一帧
+   是真实存在的 —— Tab 走查时表现为"焦点看不见"。
+   :focus-within 让整块先亮出来，再去等滚动动画。 */
+.js .reveal:focus-within {
+  opacity: 1;
+  transform: none;
 }
 
 /* ============================================================
