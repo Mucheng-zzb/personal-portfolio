@@ -382,17 +382,24 @@ data: {"type":"done","cached":false}
 | :--- | :--- | :--- |
 | 400 | `bad_request` | 请求格式错误 |
 | 404 | `not_found` | slug 不存在 |
+| 405 | `method_not_allowed` | 方法不对（例如对只读端点发 `POST`、或对内容端点发 `HEAD`） |
 | 422 | `validation_error` | 字段校验失败（附字段级信息） |
 | 429 | `rate_limited` | 触发限流（返回 `Retry-After`） |
 | 503 | `content_unavailable` | 内容缺失或校验失败（服务端、临时、可自愈） |
 | 503 | `ai_unavailable` | LLM 未配置/熔断/超时 |
 | 500 | `internal_error` | 未预期错误（不泄漏堆栈） |
 
-> **统一错误体有一个显式例外**：`/api/v1/health` 是**唯一**在非 2xx 时返回「自身报告」
-> 而不是 `{ error: { … } }` 的端点 —— 内容坏掉时它返回 503 + 体检单
+> **统一错误体有一个由应用产生的例外**：`/api/v1/health` 在非 2xx 时返回「自身报告」
+> 而不是 `{ error: { … } }` —— 内容坏掉时它返回 503 + 体检单
 > （`{ status, version, env, dependencies, request_id }`）。
 > 理由：它的首要用户是**定时探活**（Render / UptimeRobot 之类），它们只看状态码；
 > 返回 200 再在 body 里写「其实我坏了」，等于把这个检查做成摆设。
+> 体检单的 `dependencies.<name>.detail` 必须**具体到「哪个文件、什么原因」** ——
+> 只说一句「内容校验未通过」，下一个看到它的人还得去翻日志。
+>
+> 另有**一个框架行为**上的例外，**不算契约**：白名单外 Origin 的 CORS 预检由 Starlette
+> 直接返回 `400 text/plain`（`Disallowed CORS origin`），不经过我们的错误处理器。
+> 浏览器不会把预检失败交给页面 JS，前端读不到它，因此不影响前端的分支逻辑。
 >
 > `content_unavailable` 与 500 的分界：**内容坏了是 500 还是 503？**
 > 内容缺失、校验没过、文件读不出来（非 UTF-8 / IO 错误）一律 **503** ——
