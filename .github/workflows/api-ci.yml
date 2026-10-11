@@ -92,7 +92,14 @@ jobs:
           done
 
           cat /tmp/health.json
-          # 真的断言一下，而不是「看起来起了」：内容没进镜像的话 /health 会是 503
+          # 断言 ①：**内容真的进了镜像**。这一条是这套冒烟测试存在的主要理由 ——
+          # 只看 "status":"ok" 远远不够：内容目录里空无一物时它照样是 ok
+          # （实测过：.dockerignore 里一句 `**.md` 会把 web/content 下的内容全排掉，
+          #  而 profile.json/now.json 是 .json 照旧进镜像 → status:ok 但 projects/notes = 0，
+          #  线上表现是「项目区和笔记区是空的」，不报错也不降级）。
+          grep -qE '"projects":[1-9]' /tmp/health.json
+          grep -qE '"notes":[1-9]' /tmp/health.json
+          # 断言 ②：整体健康（内容校验全过）
           grep -q '"status":"ok"' /tmp/health.json
 
           # 顺带把容器的启动日志打出来 —— 里面能看到 env=production 与读到的内容目录

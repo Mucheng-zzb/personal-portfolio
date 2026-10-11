@@ -33,6 +33,15 @@ api/.venv/
 .DS_Store
 Thumbs.db
 
-# 文档：镜像里用不到（README 要在 GitHub 上看，不是在容器里看）
+# 文档：镜像里用不到（README 要在 GitHub 上看，不是在容器里看）。
+#
+# ⚠️ 这里**绝不能**写成 `**.md` 一刀切。它会把 web/content/**/*.md 也一起排掉，
+#    而那些 .md 就是**内容本身**（后端直接读它，D26）。
+#    后果不是构建失败，而是**静默的空内容**：profile.json / now.json 是 .json、
+#    照旧进镜像，于是 /health 仍然是 status:"ok"，只有 projects 与 notes 变成 0 ——
+#    站点会把项目区和笔记区显示成空的，不报错、不降级，比 503 难发现得多。
+#    这正是 D36 的镜像冒烟测试第一次照出来的问题（断言 projects/notes > 0）。
 docs/
-**.md
+README.md
+CLAUDE.md
+api/README.md
