@@ -151,19 +151,28 @@ function checkFields(obj, { required, optional }, msgs) {
    ============================================================ */
 
 /**
- * @returns {{ data: object|null, error: string|null }}
+ * @returns {{ data: object|null, body: string, error: string|null }}
  *   error 已经带上「第 N 行第 M 列」的文件内坐标。
+ *   body 是闭合 --- 之后的正文（去掉首尾空行）。笔记详情要渲染它，
+ *   所以从 v0.3-A 起这里不再丢弃正文；projects 不受影响（它不读 body）。
  */
 export function parseFrontMatter(text) {
-  const src = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text; // 去 BOM（Windows 编辑器常带）
+  // 先去 BOM，再把 CRLF / 孤立 CR 统一成 LF。
+  // 不统一的话，front-matter 的【最后一行】会带着 \r 进入 YAML 标量
+  // （中间行没事：它们的 \r 后面跟着 \n，是一个完整的换行符，YAML 会吃掉），
+  // 于是 `draft: false` 会被解析成字符串 "false\r" 而不是布尔值。
+  // 这在 Windows 上写出来的文件里是常态，不是异常输入。
+  const src = text
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n?/g, '\n');
 
   if (!src.startsWith('---')) {
-    return { data: null, error: '文件必须以 --- 开头（front-matter 分隔符）' };
+    return { data: null, body: '', error: '文件必须以 --- 开头（front-matter 分隔符）' };
   }
 
   const afterOpen = src.indexOf('\n');
   if (afterOpen === -1) {
-    return { data: null, error: '只有开头的 --- ，找不到结束的 ---' };
+    return { data: null, body: '', error: '只有开头的 --- ，找不到结束的 ---' };
   }
 
   // 找结束分隔符：单独占一行的 ---
@@ -177,22 +186,23 @@ export function parseFrontMatter(text) {
     }
   }
   if (endIndex === -1) {
-    return { data: null, error: '找不到结束的 ---（front-matter 没有闭合）' };
+    return { data: null, body: '', error: '找不到结束的 ---（front-matter 没有闭合）' };
   }
 
   const yamlText = lines.slice(0, endIndex).join('\n');
+  const body = lines.slice(endIndex + 1).join('\n').trim();
 
   let data;
   try {
     data = parseYaml(yamlText);
   } catch (err) {
-    return { data: null, error: `front-matter YAML 解析失败：${formatYamlError(err)}` };
+    return { data: null, body, error: `front-matter YAML 解析失败：${formatYamlError(err)}` };
   }
 
   if (!isObject(data)) {
-    return { data: null, error: 'front-matter 必须是一组 key: value，不能是标量或列表' };
+    return { data: null, body, error: 'front-matter 必须是一组 key: value，不能是标量或列表' };
   }
-  return { data, error: null };
+  return { data, body, error: null };
 }
 
 function formatYamlError(err) {
@@ -234,6 +244,18 @@ const PROJECT_FIELDS = {
   },
 };
 
+const NOTES_FIELDS = {
+  required: {
+    title: { kind: 'nonEmptyString', expected: '非空字符串' },
+    date: { kind: 'date' },
+    tags: { kind: 'nonEmptyStringArray' },
+    summary: { kind: 'nonEmptyString', expected: '非空字符串' },
+  },
+  optional: {
+    draft: { kind: 'boolean' },
+  },
+};
+
 export const MD_COLLECTIONS = {
   projects: {
     dir: 'web/content/projects',
@@ -243,8 +265,22 @@ export const MD_COLLECTIONS = {
       a.order - b.order ||
       String(b.date).localeCompare(String(a.date)) ||
       String(a.title).localeCompare(String(b.title), 'zh'),
-    // 预留：v0.3 的 notes 会用 filter: (fm) => fm.draft !== true 排除草稿
     filter: null,
+  },
+  notes: {
+    dir: 'web/content/notes',
+    fields: NOTES_FIELDS,
+    // 笔记详情要渲染正文，所以这一集合把 body 一起带到前端；
+    // projects 不设这个标志，负载因此逐字节不变。
+    withBody: true,
+    // 排序保证输出确定：date 降序（新的在前）→ title 升序兜底
+    sort: (a, b) =>
+      String(b.date).localeCompare(String(a.date)) ||
+      String(a.title).localeCompare(String(b.title), 'zh'),
+    // 草稿在构建期就排除，永远不进产物（v0.3-A 的硬性要求）。
+    // 注意：filter 在校验之前执行，所以草稿里的字段拼错不会当场报错 ——
+    // 这是有意的，草稿不该受构建约束。
+    filter: (fm) => fm.draft !== true,
   },
 };
 
@@ -410,29 +446,32 @@ function validateMarkdownFile(collection, file, parsed) {
  *     profile: { path, text } | null,
  *     now:     { path, text } | null,
  *     projects: [{ path, text }, ...],
- *     // v0.3 起还会有 notes: [...]
+ *     notes:    [{ path, text }, ...],
  *   }
  * @param {object} [options]
  *   options.filters[kind](frontMatter, file) → false 表示该条不进 data、也不校验
- *   （给 v0.3 的 notes 做 draft 排除用；本期 projects 不设 filter）
+ *   （notes 的 draft 排除走 MD_COLLECTIONS 里的 filter，不走这里）
  * @returns {{ data: object, errors: Array<{path: string, messages: string[]}> }}
  */
 export function validateContent(files, options = {}) {
   const filters = options.filters || {};
   const errors = [];
-  const data = { profile: null, now: null, projects: [] };
+  const data = { profile: null, now: null, projects: [], notes: [] };
 
-  // ---- 6.1 markdown 集合（projects，将来还有 notes）----
-  const seenSlugs = new Map();
-
+  // ---- 6.1 markdown 集合（projects / notes）----
   for (const [kind, collection] of Object.entries(MD_COLLECTIONS)) {
     const list = files[kind] || [];
     const kept = [];
 
+    // slug 去重按集合各自做：slug 只在同一个集合里才是命名空间
+    // （路由上也是分开的：#/notes/<slug> 与项目卡互不相干）。
+    // 放在循环外会让「笔记与项目同名」直接构建失败。
+    const seenSlugs = new Map();
+
     for (const file of list) {
       const parsed = parseFrontMatter(file.text);
 
-      // filter 钩子：v0.3 用它把 notes 的 draft 挡在构建产物之外
+      // filter 钩子：把 notes 的 draft 挡在构建产物之外
       const filter = filters[kind] || collection.filter;
       if (typeof filter === 'function' && parsed.data && filter(parsed.data, file) === false) {
         continue;
@@ -441,7 +480,7 @@ export function validateContent(files, options = {}) {
       const entry = validateMarkdownFile(collection, file, parsed);
       if (entry.messages.length) errors.push(entry);
 
-      // slug 去重（两个文件推出同一 slug 是错误）
+      // slug 去重（同集合内两个文件推出同一 slug 是错误）
       const slug = slugFromFilename(file.path);
       if (parsed.data && !parsed.error && seenSlugs.has(slug)) {
         errors.push({
@@ -452,7 +491,10 @@ export function validateContent(files, options = {}) {
         seenSlugs.set(slug, file.path);
       }
 
-      if (parsed.data) kept.push({ slug, ...parsed.data });
+      if (parsed.data) {
+        // 只有声明了 withBody 的集合才带正文，避免 projects 的负载跟着变大
+        kept.push(collection.withBody ? { slug, ...parsed.data, body: parsed.body } : { slug, ...parsed.data });
+      }
     }
 
     if (!list.length) {

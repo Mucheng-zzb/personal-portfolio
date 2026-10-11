@@ -18,7 +18,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { validateContent, formatContentErrors } from './content-schema.js';
+import { validateContent, formatContentErrors, MD_COLLECTIONS } from './content-schema.js';
 
 const VIRTUAL_ID = 'virtual:content';
 const RESOLVED_ID = '\0' + VIRTUAL_ID;
@@ -64,6 +64,7 @@ export function contentPlugin() {
       profile: readJsonFile(path.join(contentDir(), 'profile.json')),
       now: readJsonFile(path.join(contentDir(), 'now.json')),
       projects: readMarkdownFiles(path.join(contentDir(), 'projects')),
+      notes: readMarkdownFiles(path.join(contentDir(), 'notes')),
     };
   }
 
@@ -137,9 +138,11 @@ export function contentPlugin() {
     buildStart() {
       const { errors } = revalidate();
 
-      // 把这些文件挂进 rollup 的 watch 列表：内容变了要让构建失效
-      for (const abs of collectFiles().projects.map((f) => f.abs)) {
-        this.addWatchFile?.(abs);
+      // 把这些文件挂进 rollup 的 watch 列表：内容变了要让构建失效。
+      // 按 MD_COLLECTIONS 遍历，将来再加集合不用回来改这里。
+      const files = collectFiles();
+      for (const kind of Object.keys(MD_COLLECTIONS)) {
+        for (const f of files[kind] || []) this.addWatchFile?.(f.abs);
       }
       const profileAbs = path.join(contentDir(), 'profile.json');
       const nowAbs = path.join(contentDir(), 'now.json');
@@ -164,7 +167,7 @@ export function contentPlugin() {
         }
         // dev：给一个空壳，覆盖层已经在 fail() 里弹出来了，
         // 别让模块解析失败把整页搞崩（那样连覆盖层都看不见）
-        return 'export default { profile: null, now: null, projects: [] };';
+        return 'export default { profile: null, now: null, projects: [], notes: [] };';
       }
 
       // 只导出校验后的数据本身；不含时间戳/路径/随机值
