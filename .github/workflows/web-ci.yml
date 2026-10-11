@@ -76,6 +76,6 @@ jobs:
         working-directory: .
         run: |
           node web/scripts/measure-size.mjs --pretty \
-            --max-js-kb 150 \
+            --max-js-kb 1 \
             --max-css-kb 40 \
             --warn-js-kb 80
