@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/setup-python@v7
         with:
-          # 与 api/Dockerfile 的基础镜像保持一致。
+          # 与仓库根 Dockerfile 的基础镜像保持一致。
           # 本机开发用的是更新版本（3.14），但线上跑的是镜像里那个，
           # CI 要对齐【线上】而不是对齐本机。
           python-version: '3.12'
