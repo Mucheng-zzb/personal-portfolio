@@ -18,10 +18,15 @@ import sql from 'highlight.js/lib/languages/sql';
 import bash from 'highlight.js/lib/languages/bash';
 import json from 'highlight.js/lib/languages/json';
 
-// 高亮主题。
-// 注意：v0.4 做明暗主题切换时，这个主题也要跟着切 —— 现在只有一份暗色主题，
-// 到时候要么再加一份亮色的、按 html 上的 class 二选一，要么两套配色都写进 style.css。
-import 'highlight.js/styles/github-dark.css';
+/*
+   高亮配色【不在这里引】。
+
+   v0.3 时这里引的是 highlight.js 自带的 github-dark.css，那份 CSS 的颜色是写死的，
+   跟着明暗主题切换只能靠 JS 换 <link>，而换样式表必然闪一下。
+   v0.4 改成：配色写进 web/style.css，用 --hl-* 变量表达两套主题
+   （规则见 style.css §4.10 末尾，变量见 :root 与 html.theme-light）。
+   于是切主题时配色自动跟着走，这个模块一个字节的 CSS 都不用管。
+*/
 
 /* ------------------------------------------------------------------
    只注册用得到的 5 种语言（python / javascript / sql / bash / json）。

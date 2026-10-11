@@ -14,11 +14,27 @@
    改主题色只需要改这里的 --accent-1 和 --accent-2
    ============================================================ */
 :root {
+  /* 这里的一组值是【暗色主题】。亮色主题在下面 html.theme-light 里整套覆盖。
+     规矩：规则里只准写 var(--token)，不准再出现字面颜色 —— 否则亮色主题下会漏改。 */
+
   /* 背景层次：从最深的页面底色，到稍微亮一点的卡片底色 */
   --bg: #0a0b10;
   --bg-elevated: #12141c;
   --surface: rgba(255, 255, 255, 0.03); /* 卡片背景（半透明，能透出下层光晕） */
   --surface-hover: rgba(255, 255, 255, 0.055);
+
+  /* 比 --surface 更浅一档的中性底：标签、筛选片、幽灵按钮、表头 */
+  --tint: rgba(255, 255, 255, 0.035);
+  /* 板块之间的分隔细线（比 --border 还淡，只用来分块，不用来框东西） */
+  --hairline: rgba(255, 255, 255, 0.05);
+
+  /* 背景装饰层：网格线 + 两团色光 */
+  --grid-line: rgba(255, 255, 255, 0.035);
+  --glow-1: rgba(79, 124, 255, 0.55);
+  --glow-2: rgba(168, 85, 247, 0.42);
+
+  /* 吸顶导航的毛玻璃底色 */
+  --header-bg: rgba(10, 11, 16, 0.72);
 
   /* 描边 */
   --border: rgba(255, 255, 255, 0.09);
@@ -34,6 +50,38 @@
   --accent-2: #a855f7;
   --accent-soft: rgba(79, 124, 255, 0.16);
   --gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+
+  /* 文字链接、卡片里的重点值（邮箱 / GitHub）：亮色主题下必须换成深蓝，
+     否则 #a8c0ff 落在浅底上几乎看不见 */
+  --link: #a8c0ff;
+
+  /* 首屏大标题的渐变。它写进了 background-clip:text，等价于"字色"，
+     所以亮色主题必须单独给一套深色渐变 */
+  --hero-gradient: linear-gradient(135deg, #ffffff 15%, #9db4ff 55%, #c4a2ff 90%);
+
+  /* 代码：代码块外框底色 / 行内代码的底与字色 */
+  --code-bg: #0d1117;
+  --code-inline-bg: rgba(255, 255, 255, 0.07);
+  --code-inline-fg: #ffd9a0;
+
+  /* 代码高亮调色板（取值对齐 GitHub Dark）。
+     以前这里是 import 'highlight.js/styles/github-dark.css' —— 那份 CSS 里
+     颜色是写死的，跟着主题切换只能靠 JS 换样式表。现在改成自己按变量写一遍，
+     两份主题各给一套值，切主题时配色自动跟着走（见 §4.10 末尾的规则）。 */
+  --hl-base: #c9d1d9;
+  --hl-keyword: #ff7b72;
+  --hl-title: #d2a8ff;
+  --hl-attr: #79c0ff;
+  --hl-string: #a5d6ff;
+  --hl-builtin: #ffa657;
+  --hl-comment: #8b949e;
+  --hl-name: #7ee787;
+  --hl-bullet: #f2cc60;
+  --hl-section: #1f6feb;
+  --hl-add-fg: #aff5b4;
+  --hl-add-bg: #033a16;
+  --hl-del-fg: #ffdcd7;
+  --hl-del-bg: #67060c;
 
   /* 圆角 */
   --radius-sm: 8px;
@@ -51,6 +99,66 @@
   --t: 0.25s ease;
 }
 
+/* ------------------------------------------------------------
+   亮色主题（v0.4）
+
+   谁决定用哪套：index.html <head> 里那段内联脚本，它在样式表之前执行，
+   把 theme-light / theme-dark 打到 <html> 上，所以刷新不会闪一下白。
+   这里只负责"亮色时把上面的令牌整套换掉"。
+
+   注：禁 JS 时没有任何 class，页面就是上面的暗色 —— 这是有意的取舍，
+   换来的是零重复的令牌表（否则亮色的二十来个值要写两遍）。
+   ------------------------------------------------------------ */
+html.theme-light {
+  color-scheme: light;
+
+  --bg: #f7f8fc;
+  --bg-elevated: #ffffff;
+  --surface: rgba(16, 24, 40, 0.025);
+  --surface-hover: rgba(16, 24, 40, 0.05);
+
+  --tint: rgba(16, 24, 40, 0.045);
+  --hairline: rgba(16, 24, 40, 0.07);
+
+  --grid-line: rgba(16, 24, 40, 0.05);
+  --glow-1: rgba(79, 124, 255, 0.3);
+  --glow-2: rgba(168, 85, 247, 0.22);
+
+  --header-bg: rgba(247, 248, 252, 0.82);
+
+  --border: rgba(16, 24, 40, 0.1);
+  --border-strong: rgba(16, 24, 40, 0.22);
+
+  --text: #101828;
+  --text-muted: #475467;
+  --text-faint: #5d6b82; /* 对 #f7f8fc 的对比度 5.09（≥ 4.5） */
+
+  --accent-soft: rgba(79, 124, 255, 0.12);
+  --link: #2557c7; /* 对 #f7f8fc 的对比度 6.06 */
+
+  --hero-gradient: linear-gradient(135deg, #0f172a 10%, #3b5bdb 55%, #7c3aed 90%);
+
+  --code-bg: #f6f8fa;
+  --code-inline-bg: rgba(16, 24, 40, 0.06);
+  --code-inline-fg: #953800;
+
+  /* 代码高亮调色板（取值对齐 GitHub Light） */
+  --hl-base: #24292e;
+  --hl-keyword: #d73a49;
+  --hl-title: #6f42c1;
+  --hl-attr: #005cc5;
+  --hl-string: #032f62;
+  --hl-builtin: #e36209;
+  --hl-comment: #6a737d;
+  --hl-name: #22863a;
+  --hl-bullet: #735c0f;
+  --hl-section: #005cc5;
+  --hl-add-fg: #22863a;
+  --hl-add-bg: #f0fff4;
+  --hl-del-fg: #b31d28;
+  --hl-del-bg: #ffeef0;
+}
+
 /* ============================================================
    2. 基础重置
    ============================================================ */
@@ -62,6 +170,9 @@
 }
 
 html {
+  /* 告诉浏览器"这一页是暗色的"：滚动条、表单控件、默认背景都会跟着变。
+     亮色主题在 html.theme-light 里覆盖成 light（那条规则优先级更高）。 */
+  color-scheme: dark;
   /* 平滑滚动：点导航链接会顺滑地滚过去，而不是"啪"一下跳过去。
      浏览器不支持时会被忽略，页面功能不受影响 */
   scroll-behavior: smooth;
@@ -112,11 +223,32 @@ p {
   margin: 0;
 }
 
-/* 键盘 Tab 聚焦时的可见轮廓（无障碍，别删） */
+/* 键盘 Tab 聚焦时的可见轮廓（无障碍，别删）。
+   用 :focus-visible 而不是 :focus：鼠标点击不弹轮廓，键盘操作一定会弹。 */
 :focus-visible {
   outline: 2px solid var(--accent-1);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+/* ---- 跳到主要内容 ----
+   视觉上藏在视口上方，按 Tab 第一个就能碰到，回车后直接落到首屏，
+   不用先一个个 Tab 过导航栏的六个链接。 */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 200;
+  padding: 10px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: top var(--t);
+}
+.skip-link:focus {
+  top: 12px;
 }
 
 /* ============================================================
@@ -187,14 +319,14 @@ p {
 
 /* 次要按钮：只有描边 */
 .btn--ghost {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--tint);
   border-color: var(--border-strong);
   color: var(--text);
 }
 .btn--ghost:hover {
   background: var(--surface-hover);
   border-color: var(--accent-1);
-  color: #fff;
+  color: var(--text);
 }
 
 /* 小号按钮（联系板块的"复制邮箱"） */
@@ -215,7 +347,7 @@ p {
   padding: 5px 12px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--tint);
   font-size: 0.82rem;
   color: var(--text-muted);
   transition:
@@ -242,17 +374,17 @@ p {
 .badge--done {
   border-color: rgba(79, 124, 255, 0.55);
   background: var(--accent-soft);
-  color: #a8c0ff;
+  color: var(--link);
 }
 
 /* ---- 文字链接 ---- */
 .link {
-  color: #a8c0ff;
+  color: var(--link);
   font-size: 0.9rem;
   font-weight: 500;
 }
 .link:hover {
-  color: #fff;
+  color: var(--text);
 }
 
 /* ============================================================
@@ -274,8 +406,8 @@ p {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 64px 64px;
   /* 用径向遮罩让网格中间浓、边缘淡，否则整屏网格会很吵 */
   -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 0%, transparent 75%);
@@ -294,14 +426,14 @@ p {
   height: 520px;
   top: -180px;
   left: -80px;
-  background: rgba(79, 124, 255, 0.55); /* 蓝光 */
+  background: var(--glow-1); /* 蓝光 */
 }
 .bg-glow--2 {
   width: 460px;
   height: 460px;
   top: 120px;
   right: -140px;
-  background: rgba(168, 85, 247, 0.42); /* 紫光 */
+  background: var(--glow-2); /* 紫光 */
 }
 
 /* ---- 4.1 顶部导航 ---- */
@@ -310,7 +442,7 @@ p {
   top: 0;
   z-index: 100;
   height: var(--header-h);
-  background: rgba(10, 11, 16, 0.72);
+  background: var(--header-bg);
   backdrop-filter: blur(14px); /* 毛玻璃：内容从下面透过去 */
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
@@ -367,6 +499,52 @@ p {
   background: var(--surface-hover);
 }
 
+/* ---- 主题切换按钮 ----
+   默认 display:none —— 禁用 JS 时它只是个点了没反应的摆设，不如不显示。
+   .js 由入口脚本打到 <html> 上（同一套机制也用于进场动画的降级）。 */
+.theme-toggle {
+  display: none;
+  flex: none; /* 窄屏时导航可以横向滚，这颗按钮不能被压扁 */
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--tint);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color var(--t),
+    border-color var(--t),
+    background var(--t);
+}
+.js .theme-toggle {
+  display: inline-flex;
+}
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+}
+/* 暗色时显示「月亮」，亮色时显示「太阳」—— 图标表示当前主题，
+   aria-label 里写的是点下去会发生什么 */
+.theme-toggle__sun {
+  display: none;
+}
+html.theme-light .theme-toggle__moon {
+  display: none;
+}
+html.theme-light .theme-toggle__sun {
+  display: block;
+}
+
 /* ---- 4.2 Hero 首屏 ---- */
 .hero {
   position: relative;
@@ -391,7 +569,7 @@ p {
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #ffffff 15%, #9db4ff 55%, #c4a2ff 90%);
+  background: var(--hero-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -469,7 +647,7 @@ p {
 /* ---- 4.3 通用 section 排版 ---- */
 .section {
   padding: 96px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--hairline);
 }
 
 .section__eyebrow {
@@ -694,11 +872,11 @@ p {
 .contact-card__value {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #a8c0ff;
+  color: var(--link);
   word-break: break-all; /* 邮箱太长时允许换行，避免撑破卡片 */
 }
 .contact-card__value:hover {
-  color: #fff;
+  color: var(--text);
 }
 
 .contact-card__hint {
@@ -743,7 +921,7 @@ p {
   padding: 7px 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--tint);
   color: var(--text-muted);
   font-size: 0.85rem;
 }
@@ -753,7 +931,7 @@ p {
   border-color: var(--border-strong);
 }
 .chip.is-active {
-  color: #fff;
+  color: var(--text);
   background: var(--accent-soft);
   border-color: rgba(79, 124, 255, 0.55);
 }
@@ -787,7 +965,7 @@ p {
   color: var(--text);
 }
 .note-item__link:hover {
-  color: #a8c0ff;
+  color: var(--link);
 }
 .note-item__meta {
   font-size: 0.82rem;
@@ -903,12 +1081,12 @@ p {
 }
 
 .prose a {
-  color: #a8c0ff;
+  color: var(--link);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 .prose a:hover {
-  color: #fff;
+  color: var(--text);
 }
 
 .prose hr {
@@ -927,21 +1105,20 @@ p {
   padding: 2px 6px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffd9a0;
+  background: var(--code-inline-bg);
+  color: var(--code-inline-fg);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.88em;
   word-break: break-word;
 }
 
-/* 代码块：外框（底色/圆角/内边距）由这里定，里面的配色由 highlight.js 主题提供
-   —— 见 src/lib/markdown.js 里 import 的 github-dark.css。
-   底色写成 #0d1117 是为了和 github-dark 主题自身的前景/底色对齐，避免出现两层色块。 */
+/* 代码块外框。--code-bg 暗色取 #0d1117、亮色取 #f6f8fa，
+   正好和下面 hljs 调色板的底色对齐，不会出现两层色块。 */
 .prose pre {
   padding: 16px 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: #0d1117;
+  background: var(--code-bg);
   overflow-x: auto;
 }
 .prose pre code {
@@ -952,6 +1129,88 @@ p {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.86rem;
   line-height: 1.7;
+}
+
+/* ---- 代码高亮（highlight.js 的 token 类名）----
+   选择器名与分组照抄 highlight.js 官方主题的约定，值换成 var(--hl-*)，
+   于是「切主题 → 配色跟着换」不需要任何 JS。
+   语言只注册了 python / javascript / sql / bash / json（见 src/lib/markdown.js），
+   但这里把标准 token 集都覆盖了，将来加语言不用回来补样式。 */
+.hljs {
+  color: var(--hl-base);
+}
+.hljs-doctag,
+.hljs-keyword,
+.hljs-meta .hljs-keyword,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type,
+.hljs-variable.language_ {
+  color: var(--hl-keyword);
+}
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.class_.inherited__,
+.hljs-title.function_ {
+  color: var(--hl-title);
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-literal,
+.hljs-meta,
+.hljs-number,
+.hljs-operator,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id,
+.hljs-variable {
+  color: var(--hl-attr);
+}
+.hljs-meta .hljs-string,
+.hljs-regexp,
+.hljs-string {
+  color: var(--hl-string);
+}
+.hljs-built_in,
+.hljs-symbol {
+  color: var(--hl-builtin);
+}
+.hljs-code,
+.hljs-comment,
+.hljs-formula {
+  color: var(--hl-comment);
+}
+.hljs-name,
+.hljs-quote,
+.hljs-selector-pseudo,
+.hljs-selector-tag {
+  color: var(--hl-name);
+}
+.hljs-subst {
+  color: var(--hl-base);
+}
+.hljs-section {
+  color: var(--hl-section);
+  font-weight: 700;
+}
+.hljs-bullet {
+  color: var(--hl-bullet);
+}
+.hljs-emphasis {
+  color: var(--hl-base);
+  font-style: italic;
+}
+.hljs-strong {
+  color: var(--hl-base);
+  font-weight: 700;
+}
+.hljs-addition {
+  color: var(--hl-add-fg);
+  background-color: var(--hl-add-bg);
+}
+.hljs-deletion {
+  color: var(--hl-del-fg);
+  background-color: var(--hl-del-bg);
 }
 
 /* 表格 */
@@ -969,7 +1228,7 @@ p {
   text-align: left;
 }
 .prose th {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--tint);
   color: var(--text);
 }
 

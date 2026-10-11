@@ -27,6 +27,7 @@ import { renderSkills } from './src/ui/skills.js';
 import { renderProjects } from './src/ui/projects.js';
 import { renderNow } from './src/ui/now.js';
 import { renderNotesList, renderNoteDetail, renderRecentNotes } from './src/ui/notes.js';
+import { initTheme } from './src/ui/theme.js';
 import { startRouter } from './src/router.js';
 
 /* ============================================================
@@ -374,6 +375,7 @@ function initSmoothScrollFallback() {
 [
   renderContent,
   initRouter,
+  initTheme,
   initReveal,
   initActiveNav,
   initYear,
