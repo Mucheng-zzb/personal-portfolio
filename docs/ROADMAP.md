@@ -383,14 +383,14 @@ v0.2-A 的 `npm run check` 只是 `vite build` 的**占位**，**不是代码检
 3. **安全清单**：密钥管理、CORS 白名单、输入校验、依赖漏洞扫描（`pip-audit` / `npm audit`）、CSP 头、`.env` 不入库、Git 历史无密钥。
 4. **数据备份**：数据库导出脚本（若 v0.6 存在）。
 5. **文档**：`docs/ARCHITECTURE.md`、`docs/API.md`、`CHANGELOG.md`、`CONTRIBUTING.md`、`LICENSE`、性能预算说明。
-6. **CI 门禁**：PR 必须 lint + test + build 全绿才能合并。
+6. **CI 门禁**：`api/**` 变更跑 api CI（pytest + fixture 同步 + docker build + 镜像冒烟 + 语义密钥扫描）；`web/**` 变更跑 web CI（`npm run check` + 体积门禁 + 两条冒烟）。**当前不设强制 PR 流程**，CI 跑在 push 上阻断。
 
 **验收标准**
 - [ ] `pytest` 与 `npm test` 全绿，且 CI 里会跑。
 - [ ] 服务宕机后重启能自动恢复，健康检查转绿。
 - [ ] 从零克隆仓库 + 照 README 操作，30 分钟内能跑起来。
 - [ ] 依赖扫描无高危漏洞。
-- [ ] 故意提交一个坏代码，PR 被 CI 拦下（验证门禁真的生效）。
+- [ ] 故意提交一个坏代码并 push，**CI 变红**（验证门禁真的生效）。
 
 **风险**：测试写太多挤占内容时间 → 只测关键路径。**可砍**：前端测试（保留后端契约测试）。
 
@@ -451,7 +451,7 @@ v0.2-A 的 `npm run check` 只是 `vite build` 的**占位**，**不是代码检
 4. v0.7 降级：RAG 问答 → AI 摘要 → 关键词搜索
 5. v0.8 的前端测试、依赖扫描（保留后端契约测试与密钥检查）
 6. v0.4 的标签筛选、项目封面图
-7. v0.2 的 ESLint、Lighthouse CI
+7. v0.2 的 ESLint、Lighthouse CI（**体积门禁与两条黑盒冒烟不列入可砍** —— 它们是 Must 底线的自动化）
 
 **绝对不砍（底线）**
 - ❌ 内容与代码分离（否则每次更新都会烂尾）

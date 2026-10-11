@@ -508,7 +508,7 @@ POST /api/v1/ask { question }
 ## 9. 部署与发布流程
 
 ```text
-功能分支 ──PR──► CI（lint + test + build）──全绿──► 合并 main
+本地提交 ──push main──► CI（api CI / web CI，按 paths 选跑）──失败即阻断──► 修复
                                                      │
                              ┌───────────────────────┴───────────────────────┐
                              ▼                                               ▼
@@ -536,9 +536,13 @@ POST /api/v1/ask { question }
 | 阶段 | 门禁 | 阻断方式 |
 | :--- | :--- | :--- |
 | 本地提交前 | `npm run check`（format+lint）、`pytest` | 靠自律 + 脚本 |
-| PR | lint + test + build 全绿 | CI 阻断合并 |
+| push `api/**` | api CI：pytest + fixture 同步 + docker build + 镜像冒烟 + 语义密钥扫描 | CI 失败阻断 |
+| push `web/**` | web CI：`npm run check` + 体积门禁 + 两条黑盒冒烟 | CI 失败阻断 |
 | 部署前 | 内容 schema 校验通过 | 构建失败 |
 | 发布前 | Lighthouse 四项达标、发布检查清单全绿 | 人工确认 |
+
+**不设强制 PR 流程**：单人仓库，CI 跑在 push 上阻断，效果相同而摩擦为零。
+（历史上本表曾写「PR | lint + test + build 全绿 | CI 阻断合并」，那道门禁**从未存在过** —— 见 `docs/HANDOFF.md` D43。）
 
 **Lighthouse 目标（移动端）**：性能 ≥ 90 / 无障碍 ≥ 95 / 最佳实践 ≥ 95 / SEO ≥ 95。
 **测试目标**：后端关键路径覆盖率 ≥ 70%；前端只测渲染与降级路径。
@@ -551,7 +555,7 @@ POST /api/v1/ask { question }
 
 | 需求 | 方案 |
 | :--- | :--- |
-| 服务是否活着 | `GET /api/v1/health` + 免费 Uptime 监控（5 分钟探活，兼作防休眠） |
+| 服务是否活着 | `GET /api/v1/health`；**不做定时探活**（免费档 100 容器小时/月装不下，且实测接口请求唤不醒休眠容器），唤醒靠浏览器打开或人工触发 |
 | 出错了怎么办 | 结构化 JSON 日志（含 request_id）；管理员邮箱告警 |
 | 慢在哪 | 日志记录每个请求耗时；p95 用日志聚合估算 |
 | AI 花了多少 | `ask_logs` 表：次数、tokens、缓存命中率 |
@@ -559,6 +563,16 @@ POST /api/v1/ask { question }
 | 前端报错 | `window.onerror` 上报到轻量端点或控制台日志（v1.0 可只记录不聚合） |
 
 **隐私底线**：不采集可识别个人的信息；IP 只存哈希；统计工具选择无 Cookie 方案。
+
+### 数据保留与删除
+
+| 数据 | 保留期 | 删除路径 |
+| :--- | :--- | :--- |
+| `ask_logs`（question_hash / cached / latency / tokens —— **不存问题原文**） | ≤ 90 天 | 运维脚本按 `created_at` 批量删除 |
+| 留言板 UGC | 无固定期限，按请求删 | 发邮件 → 用环境变量里的 Bearer token 调 `DELETE /api/v1/guestbook/{id}` |
+
+**为什么 `ask_logs` 只存问题哈希**：哈希不可逆，统计（缓存命中率、重复提问）照样算得出来，
+但泄露日志也不等于泄露别人问了什么。90 天是「够看出趋势、又不长期留痕」的折中。
 
 ---
 

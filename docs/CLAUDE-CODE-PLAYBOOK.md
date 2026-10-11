@@ -297,6 +297,8 @@ Claude Code 在每个任务中必须遵守：
 - [ ] 第 4 次连续提交返回 429（附 curl 输出）
 - [ ] 停掉数据库后，页面其他部分正常，留言板显示占位提示
 - [ ] alembic upgrade head 可在空库一键建表
+- [ ] 留言板提交处有一行隐私同意说明（写明存什么、留多久、怎么删）
+- [ ] `/privacy` 页存在，且页脚可达
 【输出要求】变更摘要 / 验证结果 / 未完成项 / 下一步建议
 ~~~
 
@@ -341,6 +343,7 @@ Claude Code 在每个任务中必须遵守：
 - [ ] 引用来源可点开且指向正确内容
 - [ ] 限流/超时/关闭 AI 三种情况下，UI 表现都友好且不影响其他功能
 - [ ] 首屏 JS 体积仍在 docs/ARCHITECTURE.md §4 性能预算内（首屏 JS gzip ≤150KB）
+- [ ] AI 浮层固定显示「请勿输入敏感信息」（与「AI 生成，可能有误」同处常驻，不随消息滚动消失）
 【输出要求】变更摘要 / 验证结果 / 未完成项 / 下一步建议
 ~~~
 
@@ -354,14 +357,14 @@ Claude Code 在每个任务中必须遵守：
 【范围】
 1) 后端 pytest：每个端点契约测试（状态码 + 关键字段）、输入校验、限流、错误结构。用 httpx.AsyncClient + 临时数据库。
 2) 前端 Vitest：内容渲染、Markdown 清洗（XSS 用例）、API 降级路径。
-3) .github/workflows/api-ci.yml 与 web-ci.yml：lint + test + build，PR 必须全绿。
+3) .github/workflows/api-ci.yml 与 web-ci.yml：lint + test + build，**push 到 main 时失败即阻断**（不设强制 PR 流程）。
 4) 安全：pip-audit / npm audit；密钥扫描；CORS 与 CSP 检查；.env.example 完整。
-5) 结构化日志补齐（request_id 贯穿、耗时、状态码）；健康检查与免费 Uptime 监控配置说明。
+5) 结构化日志补齐（request_id 贯穿、耗时、状态码）；健康检查说明（`/health`，**不做定时探活**，理由见 ARCHITECTURE §11）。
 6) 文档：CHANGELOG.md、CONTRIBUTING.md、LICENSE、docs/API.md（从 OpenAPI 生成或手写摘要）。
 【不做】不追求高覆盖率；不引入重量级测试框架；不做混沌工程。
 【验收标准】
 - [ ] pytest 与 npm test 全绿（粘贴输出）
-- [ ] 故意提交一个坏测试/坏 lint，PR 被 CI 拦下（附截图或日志描述）
+- [ ] 故意提交一个坏测试/坏 lint 并 push，CI 变红拦下（附日志描述）
 - [ ] 依赖扫描无高危漏洞（粘贴结果）
 - [ ] git log -p 全历史搜索密钥无命中
 - [ ] 从零克隆 + 照 README 30 分钟内跑起来（记录实际耗时与卡点）
