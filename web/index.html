@@ -42,6 +42,9 @@
           <a class="nav__link" href="#about">关于</a>
           <a class="nav__link" href="#skills">技能</a>
           <a class="nav__link" href="#projects">项目</a>
+          <!-- 这一项是【路由链接】不是锚点：#/ 开头的 hash 由 src/router.js 接管，
+               而 #about 这类不带斜杠的仍然走浏览器原生滚动。两种链接共用一条导航。 -->
+          <a class="nav__link" href="#/notes">笔记</a>
           <a class="nav__link" href="#now">近况</a>
           <a class="nav__link" href="#contact">联系</a>
         </nav>
@@ -154,10 +157,24 @@
         </div>
       </section>
 
+      <!-- ============ Notes 笔记（首页只放最近 3 篇） ============ -->
+      <section class="section reveal" id="notes-preview">
+        <div class="container">
+          <p class="section__eyebrow">04 / Notes</p>
+          <h2 class="section__title">最近写的笔记</h2>
+          <p class="section__lead">学习路上踩过的坑、想明白的事，写下来才算真的学会。</p>
+
+          <!-- → web/content/notes/*.md 取最近 3 篇（列表顺序在构建期排好）。
+               这一节只渲染标题 / 日期 / 标签 / 一行摘要 +「查看全部」，
+               【不渲染 Markdown 正文】：正文解析只有详情页才做。 -->
+          <div id="recentNotesList"></div>
+        </div>
+      </section>
+
       <!-- ============ 5. Now 近况 ============ -->
       <section class="section reveal" id="now">
         <div class="container">
-          <p class="section__eyebrow">04 / Now</p>
+          <p class="section__eyebrow">05 / Now</p>
           <h2 class="section__title">最近在做什么</h2>
           <p class="section__lead">这一块建议每隔一两个月更新一次，让人知道你还在往前走。</p>
 
@@ -169,7 +186,7 @@
       <!-- ============ 6. Contact 联系 ============ -->
       <section class="section section--contact reveal" id="contact">
         <div class="container">
-          <p class="section__eyebrow">05 / Contact</p>
+          <p class="section__eyebrow">06 / Contact</p>
           <h2 class="section__title">联系我</h2>
           <p class="section__lead">想交流、想一起学、或者只是打个招呼，都欢迎。</p>
 
@@ -211,6 +228,28 @@
         </div>
       </section>
     </main>
+
+    <!-- ============ 笔记视图（v0.3-A） ============
+         列表与详情共用这一个容器，由 src/router.js 决定显示哪一个。
+
+         为什么放在 </main> 外面：
+         切到笔记视图时是把整个 <main> 隐藏掉（加 hidden），这样 main 里那五个板块的
+         DOM 一个字符都不用动，也不会被包一层新的父节点。
+
+         默认 hidden 是【故意的】：脚本没跑起来（禁用 JS / 报错）时，
+         首页照旧完整可见，笔记视图不会冒出来一半 —— 和 v0.2-C 的降级契约一致。 -->
+    <div id="notesView" hidden>
+      <section class="section">
+        <div class="container">
+          <p class="section__eyebrow">/ Notes</p>
+          <h1 class="section__title">笔记</h1>
+
+          <!-- 列表与详情二选一显示：路由切换时由 script.js 设置 hidden -->
+          <div id="notesListView"></div>
+          <div id="noteDetailView" hidden></div>
+        </div>
+      </section>
+    </div>
 
     <!-- ===== 页脚 ===== -->
     <footer class="footer">

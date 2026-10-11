@@ -727,6 +727,252 @@ p {
   color: var(--text-muted);
 }
 
+/* ---- 4.10 笔记：列表 / 详情 / 正文排版 ---- */
+
+/* 标签筛选条。用链接而不是按钮：筛选结果也有可复制的 URL（见 src/ui/notes.js） */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.chip:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+.chip.is-active {
+  color: #fff;
+  background: var(--accent-soft);
+  border-color: rgba(79, 124, 255, 0.55);
+}
+
+/* 列表 */
+.notes-list {
+  display: grid;
+  gap: 16px;
+}
+.notes-list--recent {
+  margin-bottom: 20px;
+}
+
+.note-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.note-item:hover {
+  background: var(--surface-hover);
+  border-color: rgba(79, 124, 255, 0.45);
+}
+
+.note-item__title {
+  font-size: 1.12rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+.note-item__link {
+  color: var(--text);
+}
+.note-item__link:hover {
+  color: #a8c0ff;
+}
+.note-item__meta {
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+.note-item__summary {
+  font-size: 0.94rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.notes-more {
+  margin-top: 18px;
+}
+.notes-empty {
+  padding: 8px 0 4px;
+  color: var(--text-muted);
+}
+
+/* 详情 */
+.note__back {
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+}
+.note__title {
+  margin-bottom: 10px;
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+.note__meta {
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
+.note-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+/* 正文排版。
+   注意：§2 的全局重置把 ul / ol 的 list-style 清掉了，
+   所以这里必须【显式恢复】列表符号，否则笔记里的列表会变成没有圆点的裸行。 */
+.prose {
+  max-width: 72ch; /* 一行别太长，读起来更省力（和 .about__text 的 60ch 同一个理由） */
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--text-muted);
+}
+
+.prose > * + * {
+  margin-top: 18px;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  color: var(--text);
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+.prose h2 {
+  margin-top: 40px;
+  font-size: 1.3rem;
+  font-weight: 680;
+}
+.prose h3 {
+  margin-top: 30px;
+  font-size: 1.1rem;
+  font-weight: 650;
+}
+.prose h4 {
+  margin-top: 24px;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.prose strong {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.5em;
+}
+.prose ul {
+  list-style: disc;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose li {
+  margin-top: 8px;
+}
+.prose li::marker {
+  color: var(--accent-1);
+}
+
+.prose blockquote {
+  padding: 6px 18px;
+  border-left: 3px solid rgba(79, 124, 255, 0.5);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: linear-gradient(90deg, rgba(79, 124, 255, 0.07), transparent);
+  color: var(--text-muted);
+}
+
+.prose a {
+  color: #a8c0ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose a:hover {
+  color: #fff;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+/* 行内代码 */
+.prose :not(pre) > code {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffd9a0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  word-break: break-word;
+}
+
+/* 代码块：外框（底色/圆角/内边距）由这里定，里面的配色由 highlight.js 主题提供
+   —— 见 src/lib/markdown.js 里 import 的 github-dark.css。
+   底色写成 #0d1117 是为了和 github-dark 主题自身的前景/底色对齐，避免出现两层色块。 */
+.prose pre {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #0d1117;
+  overflow-x: auto;
+}
+.prose pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+/* 表格 */
+.prose table {
+  display: block;
+  width: 100%;
+  border-collapse: collapse;
+  overflow-x: auto;
+  font-size: 0.9rem;
+}
+.prose th,
+.prose td {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.prose th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
 /* ============================================================
    5. 进场动画
    注意：初始的"隐藏"状态只有在 JS 成功加载后才会生效
@@ -794,6 +1040,30 @@ p {
   .scroll-hint {
     display: none;
   } /* 手机首屏本来就短，这个提示没必要 */
+
+  /* 笔记：手机上把筛选条和正文都收紧一点 */
+  .chip {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .note-item {
+    gap: 8px;
+  }
+
+  .prose {
+    font-size: 0.96rem;
+    line-height: 1.8;
+  }
+  .prose pre {
+    padding: 14px;
+    /* 手机上让代码块略微出血，多挤出一两个字宽 */
+    margin-inline: -4px;
+  }
+
+  .note-nav {
+    font-size: 0.85rem;
+  }
 }
 
 /* 小屏手机：进一步压缩 */
